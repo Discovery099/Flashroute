@@ -87,7 +87,7 @@ export class AnalyticsRepository {
         gas: day.gas + decimalToNumber(trade.gasCostUsd),
         net: day.net + decimalToNumber(trade.netProfitUsd),
         success: trade.status === 'settled' || trade.status === 'included' ? day.success + 1 : day.success,
-        fail: trade.status === 'reverted' || trade.status === 'failed' ? day.fail + 1 : day.fail,
+        fail: trade.status === 'reverted' || trade.status === 'failed' ? day.fail + 1 : day.fail, // unknown statuses are excluded from both success and fail counts
         count: day.count + 1,
       });
     }
@@ -108,16 +108,12 @@ export class AnalyticsRepository {
       });
     }
 
-    const profitTrend = dailyBreakdown.map((d) => ({
-      date: d.date,
-      cumulativeProfitUsd: (() => {
-        let cum = 0;
-        for (const day of dailyBreakdown) {
-          if (day.date <= d.date) cum += day.netProfitUsd;
-        }
-        return cum;
-      })(),
-    }));
+    const profitTrend: { date: string; cumulativeProfitUsd: number }[] = [];
+    let cumProfit = 0;
+    for (const d of dailyBreakdown) {
+      cumProfit += d.netProfitUsd;
+      profitTrend.push({ date: d.date, cumulativeProfitUsd: cumProfit });
+    }
 
     const volumeTrend = dailyBreakdown.map((d) => ({ date: d.date, tradeCount: d.tradeCount, volumeUsd: d.grossProfitUsd }));
 
@@ -217,25 +213,25 @@ export class AnalyticsRepository {
     }>();
 
     for (const record of records) {
-      const existing = competitorMap.get(record.botAddress) ?? {
-        tradeCount: 0,
-        estimatedProfit: 0,
-        totalGasPrice: 0,
-        routeCounts: new Map<string, number>(),
-        firstSeenAt: record.createdAt,
-        lastSeenAt: record.createdAt,
-      };
+      const existing = competitorMap.get(record.botAddress);
+      if (!existing) {
+        competitorMap.set(record.botAddress, {
+          tradeCount: 1,
+          estimatedProfit: decimalToNumber(record.estimatedProfitUsd),
+          totalGasPrice: decimalToNumber(record.gasPriceGwei),
+          routeCounts: new Map([[this.serializeRoutePath(record.routePath), 1]]),
+          firstSeenAt: record.createdAt,
+          lastSeenAt: record.createdAt,
+        });
+        continue;
+      }
+      existing.tradeCount += 1;
+      existing.estimatedProfit += decimalToNumber(record.estimatedProfitUsd);
+      existing.totalGasPrice += decimalToNumber(record.gasPriceGwei);
       const routeStr = this.serializeRoutePath(record.routePath);
-      const newRouteCounts = new Map(existing.routeCounts);
-      newRouteCounts.set(routeStr, (newRouteCounts.get(routeStr) ?? 0) + 1);
-      competitorMap.set(record.botAddress, {
-        tradeCount: existing.tradeCount + 1,
-        estimatedProfit: existing.estimatedProfit + decimalToNumber(record.estimatedProfitUsd),
-        totalGasPrice: existing.totalGasPrice + decimalToNumber(record.gasPriceGwei),
-        routeCounts: newRouteCounts,
-        firstSeenAt: record.createdAt < existing.firstSeenAt ? record.createdAt : existing.firstSeenAt,
-        lastSeenAt: record.createdAt > existing.lastSeenAt ? record.createdAt : existing.lastSeenAt,
-      });
+      existing.routeCounts.set(routeStr, (existing.routeCounts.get(routeStr) ?? 0) + 1);
+      if (record.createdAt < existing.firstSeenAt) existing.firstSeenAt = record.createdAt;
+      if (record.createdAt > existing.lastSeenAt) existing.lastSeenAt = record.createdAt;
     }
 
     const competitors: CompetitorData[] = [...competitorMap.entries()]
@@ -304,7 +300,6 @@ export class AnalyticsRepository {
 
     const gasTrend = [...hourlyMap.entries()]
       .filter(([hour]) => new Date(hour) >= last24h)
-      .sort((a, b) => a[0].localeCompare(b[0]))
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([hour, stats]) => ({
         hour,
