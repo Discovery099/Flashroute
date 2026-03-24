@@ -1,7 +1,9 @@
 import type { AnalyticsRepository } from './analytics.repository';
 
-const ETH_GAS_PRICE_CACHE: Map<number, { value: number; timestamp: number }> = new Map();
-const ETH_GAS_PRICE_CACHE_TTL_MS = 5000;
+// Shared state: This module-level Map is shared across all service instances.
+ // Will be moved to instance property once singleton scope is confirmed.
+ const ETH_GAS_PRICE_CACHE: Map<number, { value: number; timestamp: number }> = new Map();
+ const ETH_GAS_PRICE_CACHE_TTL_MS = 5000;
 
 export class AnalyticsService {
   public constructor(
@@ -35,7 +37,7 @@ export class AnalyticsService {
       return cached.value;
     }
     try {
-      const rpcUrl = this.rpcUrl || 'https://eth.llamarpc.com';
+      const rpcUrl = this.rpcUrl ?? 'https://eth.llamarpc.com';
       const response = await fetch(rpcUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,8 +48,13 @@ export class AnalyticsService {
           id: 1,
         }),
       });
-      const data = (await response.json()) as { result: string };
-      const gwei = Number(data.result) / 1e9;
+      let gwei: number;
+      try {
+        const data = (await response.json()) as { result: string };
+        gwei = Number(data.result) / 1e9;
+      } catch {
+        return null;
+      }
       ETH_GAS_PRICE_CACHE.set(chainId, { value: gwei, timestamp: Date.now() });
       return gwei;
     } catch {
