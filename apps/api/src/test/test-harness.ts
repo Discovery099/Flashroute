@@ -20,6 +20,8 @@ import {
 import { PrismaStrategiesRepository } from '../modules/strategies/strategies.repository';
 import { PrismaTradesRepository } from '../modules/trades/trades.repository';
 import { TradesService } from '../modules/trades/trades.service';
+import { AnalyticsRepository } from '../modules/analytics/analytics.repository';
+import { AnalyticsService } from '../modules/analytics/analytics.service';
 import type { OpportunityView } from '@flashroute/shared/contracts/opportunity';
 
 type SortDirection = 'asc' | 'desc';
@@ -178,6 +180,7 @@ class FakePrismaClient implements PrismaClientLike {
   public readonly strategies: any[] = [];
   public readonly trades: any[] = [];
   public readonly tradeHops: any[] = [];
+  public readonly competitorActivityData: any[] = [];
   public readonly supportedChains: any[] = [
     { id: 1, chainId: 1, name: 'Ethereum', isActive: true, executorContractAddress: '0xexecutor-eth' },
     { id: 2, chainId: 42161, name: 'Arbitrum', isActive: true, executorContractAddress: '0xexecutor-arb' },
@@ -572,6 +575,13 @@ class FakePrismaClient implements PrismaClientLike {
         }));
     },
   };
+
+  public readonly competitorActivity = {
+    findMany: async ({ where }: { where: Record<string, unknown> }) => {
+      const rows = this.competitorActivityData;
+      return rows;
+    },
+  };
 }
 
 export const createTestApiHarness = async () => {
@@ -590,6 +600,8 @@ export const createTestApiHarness = async () => {
   const ephemeralAuthStore = new RedisEphemeralAuthStore(redis, 'fr:');
   const emailQueue = new RedisEmailJobQueue(redis, 'fr:queue:email');
   const rateLimitStore = new RedisRateLimitStore(redis, 'fr:');
+  const analyticsRepository = new AnalyticsRepository(prisma as never);
+  const analyticsService = new AnalyticsService(analyticsRepository, 'https://eth.llamarpc.com');
 
   const app = buildApiApp({
     authRepository,
@@ -611,6 +623,8 @@ export const createTestApiHarness = async () => {
     },
     opportunitiesService,
     tradesService,
+    analyticsRepository,
+    analyticsService,
   });
 
   await app.ready();
