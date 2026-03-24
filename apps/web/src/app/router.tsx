@@ -16,6 +16,7 @@ import { TradesListPage } from '@/features/trades/pages/TradesListPage';
 import { StrategyDetailPage } from '@/features/strategies/pages/StrategyDetailPage';
 import { StrategyEditPage } from '@/features/strategies/pages/StrategyEditPage';
 import { StrategyListPage } from '@/features/strategies/pages/StrategyListPage';
+import { AnalyticsPage } from '@/features/analytics/pages/AnalyticsPage';
 import { AppShell } from '../layouts/AppShell';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { MarketingLayout } from '../layouts/MarketingLayout';
@@ -266,7 +267,7 @@ export const appRoutes: RouteObject[] = [
       { path: 'trades', element: <TradesListPage /> },
       { path: 'trades/:id', element: <TradeDetailPage /> },
       { path: 'pools', element: <PlaceholderPage eyebrow="Liquidity" title="Pools" description="Pool monitoring scaffolding is mounted now so liquidity health and routing surfaces can land without shell changes." /> },
-      { path: 'analytics', element: <PlaceholderPage eyebrow="Analytics" title="Analytics" description="Chart-heavy routes can opt into full-width content while preserving shared shell affordances." /> },
+      { path: 'analytics', element: <AnalyticsPage /> },
       { path: 'settings', element: <PlaceholderPage eyebrow="Workspace" title="Settings" description="Account, API, and environment preferences will inherit the same state and token foundation." /> },
       { path: 'billing', element: <PlaceholderPage eyebrow="Workspace" title="Billing" description="Billing and entitlement routes are scaffolded so plan-aware UI can land without route churn." /> },
       { path: 'api-keys', element: <PlaceholderPage eyebrow="Workspace" title="API keys" description="API key management gets a reserved product route now for later auth-aware provisioning and audit work." /> },
