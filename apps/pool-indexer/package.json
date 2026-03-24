@@ -1,0 +1,17 @@
+{
+  "name": "@flashroute/pool-indexer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node -e \"console.log('pool-indexer lint placeholder')\"",
+    "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "test": "pnpm exec vitest run --config vitest.config.ts --pool forks src/modules/pools/pool-normalizer.test.ts src/modules/pools/pool-indexer.test.ts",
+    "build": "node -e \"console.log('pool-indexer build placeholder')\"",
+    "dev": "node -e \"console.log('pool-indexer dev placeholder')\""
+  },
+  "dependencies": {
+    "@flashroute/blockchain": "workspace:*",
+    "@flashroute/shared": "workspace:*"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@flashroute/executor",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node -e \"console.log('executor lint placeholder')\"",
+    "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "test": "pnpm exec vitest run --config vitest.config.ts",
+    "build": "node -e \"console.log('executor build placeholder')\"",
+    "dev": "node -e \"console.log('executor dev placeholder')\""
+  },
+  "dependencies": {
+    "@flashroute/blockchain": "workspace:*",
+    "@flashroute/shared": "workspace:*"
+  }
+}

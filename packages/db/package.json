@@ -1,0 +1,27 @@
+{
+  "name": "@flashroute/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/client.ts",
+    "./client": "./src/client.ts",
+    "./redis": "./src/redis.ts"
+  },
+  "scripts": {
+    "lint": "node -e \"console.log('db lint placeholder')\"",
+    "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "test": "pnpm exec vitest run --pool forks src/client.test.ts src/redis.test.ts",
+    "build": "node -e \"console.log('db build placeholder')\"",
+    "dev": "node -e \"console.log('db dev placeholder')\"",
+    "prisma:generate": "pnpm exec prisma generate --schema prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@flashroute/shared": "workspace:*",
+    "@prisma/client": "^6.5.0",
+    "ioredis": "^5.4.2"
+  },
+  "devDependencies": {
+    "prisma": "^6.5.0"
+  }
+}

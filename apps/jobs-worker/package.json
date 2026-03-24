@@ -1,0 +1,13 @@
+{
+  "name": "@flashroute/jobs-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node -e \"console.log('jobs-worker lint placeholder')\"",
+    "typecheck": "node -e \"console.log('jobs-worker typecheck placeholder')\"",
+    "test": "node -e \"console.log('jobs-worker test placeholder')\"",
+    "build": "node -e \"console.log('jobs-worker build placeholder')\"",
+    "dev": "node -e \"console.log('jobs-worker dev placeholder')\""
+  }
+}

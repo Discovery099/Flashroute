@@ -1,0 +1,16 @@
+{
+  "name": "@flashroute/analytics-engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node -e \"console.log('analytics-engine lint placeholder')\"",
+    "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "test": "pnpm exec vitest run --config vitest.config.ts",
+    "build": "node -e \"console.log('analytics-engine build placeholder')\"",
+    "dev": "node -e \"console.log('analytics-engine dev placeholder')\""
+  },
+  "dependencies": {
+    "@flashroute/shared": "workspace:*"
+  }
+}

@@ -1,0 +1,21 @@
+services:
+  workspace:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /workspace
+    command: pnpm install --frozen-lockfile
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: flashroute
+      POSTGRES_PASSWORD: flashroute
+      POSTGRES_USER: flashroute
+    ports:
+      - '5432:5432'
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'

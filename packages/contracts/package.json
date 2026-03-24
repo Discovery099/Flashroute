@@ -1,0 +1,13 @@
+{
+  "name": "@flashroute/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node -e \"console.log('contracts lint placeholder')\"",
+    "typecheck": "node -e \"console.log('contracts typecheck placeholder')\"",
+    "test": "node -e \"console.log('contracts test placeholder')\"",
+    "build": "node -e \"console.log('contracts build placeholder')\"",
+    "dev": "node -e \"console.log('contracts dev placeholder')\""
+  }
+}

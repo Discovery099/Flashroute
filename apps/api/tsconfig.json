@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "vitest/globals"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@flashroute/db/client": ["../../packages/db/src/client.ts"],
+      "@flashroute/db/redis": ["../../packages/db/src/redis.ts"]
+    }
+  },
+  "include": ["src", "vitest.config.ts"]
+}

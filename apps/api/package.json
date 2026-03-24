@@ -1,0 +1,22 @@
+{
+  "name": "@flashroute/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node -e \"console.log('api lint placeholder')\"",
+    "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "test": "pnpm exec vitest run --pool forks src/modules/auth/auth.routes.test.ts src/modules/users/user.routes.test.ts src/modules/opportunities/opportunities.routes.test.ts src/modules/strategies/strategies.routes.test.ts src/modules/live/live.gateway.test.ts src/modules/live/live.ws.test.ts",
+    "build": "node -e \"console.log('api build placeholder')\"",
+    "dev": "node -e \"console.log('api dev placeholder')\""
+  },
+  "dependencies": {
+    "@fastify/websocket": "^11.2.0",
+    "@flashroute/db": "workspace:*",
+    "@flashroute/shared": "workspace:*",
+    "bcryptjs": "^2.4.3",
+    "fastify": "^5.2.1",
+    "otplib": "^12.0.1",
+    "zod": "^3.24.2"
+  }
+}

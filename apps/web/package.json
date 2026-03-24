@@ -1,0 +1,27 @@
+{
+  "name": "@flashroute/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "test": "pnpm exec vitest run --config vitest.config.ts --pool forks",
+    "test:strategies": "pnpm exec vitest run --config vitest.config.ts --pool forks src/features/strategies/components/StrategyForm.test.tsx src/features/strategies/pages/StrategyCreatePage.test.tsx src/features/strategies/pages/StrategyEditPage.test.tsx src/features/strategies/pages/StrategyDetailPage.test.tsx src/features/strategies/pages/StrategyListPage.test.tsx",
+    "build": "pnpm exec vite build",
+    "dev": "pnpm exec vite"
+  },
+  "dependencies": {
+    "@flashroute/ui": "workspace:*",
+    "@hookform/resolvers": "^3.10.0",
+    "@tanstack/react-query": "^5.66.11",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.511.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.55.0",
+    "react-router-dom": "^7.6.2",
+    "zod": "^3.24.2",
+    "zustand": "^5.0.3"
+  }
+}

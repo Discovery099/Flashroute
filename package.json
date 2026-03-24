@@ -1,0 +1,35 @@
+{
+  "name": "flashroute-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm exec tsc -p tsconfig.base.json --noEmit",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm --filter @flashroute/ui build && pnpm --filter @flashroute/web build",
+    "dev": "pnpm --filter @flashroute/web dev",
+    "workspace:lint": "pnpm -r --if-present lint",
+    "workspace:typecheck": "pnpm -r --if-present typecheck",
+    "workspace:test": "pnpm -r --if-present test",
+    "workspace:build": "pnpm --filter @flashroute/ui build && pnpm --filter @flashroute/web build",
+    "workspace:dev": "pnpm --filter @flashroute/web dev"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^22.13.14",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^26.0.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.1",
+    "vitest": "^3.0.8"
+  }
+}

@@ -1,0 +1,589 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  MONITOR       @map("monitor")
+  TRADER        @map("trader")
+  EXECUTOR      @map("executor")
+  INSTITUTIONAL @map("institutional")
+  ADMIN         @map("admin")
+}
+
+enum SubscriptionPlan {
+  MONITOR       @map("monitor")
+  TRADER        @map("trader")
+  EXECUTOR      @map("executor")
+  INSTITUTIONAL @map("institutional")
+}
+
+enum SubscriptionStatus {
+  ACTIVE    @map("active")
+  PAST_DUE  @map("past_due")
+  CANCELLED @map("cancelled")
+  TRIALING  @map("trialing")
+}
+
+enum Dex {
+  UNISWAP_V2 @map("uniswap_v2")
+  UNISWAP_V3 @map("uniswap_v3")
+  SUSHISWAP  @map("sushiswap")
+  CURVE      @map("curve")
+  BALANCER   @map("balancer")
+}
+
+enum DexVersion {
+  V2       @map("v2")
+  V3       @map("v3")
+  STABLE   @map("stable")
+  WEIGHTED @map("weighted")
+}
+
+enum FlashLoanProvider {
+  AUTO     @map("auto")
+  AAVE     @map("aave")
+  BALANCER @map("balancer")
+  DYDX     @map("dydx")
+}
+
+enum TradeStatus {
+  PENDING   @map("pending")
+  SUBMITTED @map("submitted")
+  INCLUDED  @map("included")
+  CONFIRMED @map("confirmed")
+  REVERTED  @map("reverted")
+  FAILED    @map("failed")
+}
+
+enum AlertType {
+  OPPORTUNITY_FOUND @map("opportunity_found")
+  TRADE_EXECUTED    @map("trade_executed")
+  TRADE_FAILED      @map("trade_failed")
+  PROFIT_THRESHOLD  @map("profit_threshold")
+  GAS_SPIKE         @map("gas_spike")
+  SYSTEM_ERROR      @map("system_error")
+}
+
+enum AlertChannel {
+  DASHBOARD @map("dashboard")
+  EMAIL     @map("email")
+  TELEGRAM  @map("telegram")
+  WEBHOOK   @map("webhook")
+}
+
+enum AlertDeliveryStatus {
+  PENDING   @map("pending")
+  DELIVERED @map("delivered")
+  FAILED    @map("failed")
+}
+
+enum WebhookProvider {
+  STRIPE @map("stripe")
+}
+
+enum WebhookEventStatus {
+  PENDING    @map("pending")
+  PROCESSING @map("processing")
+  PROCESSED  @map("processed")
+  FAILED     @map("failed")
+}
+
+model User {
+  id                      String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                   String                   @unique @db.VarChar(255)
+  passwordHash            String                   @map("password_hash") @db.VarChar(255)
+  name                    String                   @db.VarChar(100)
+  role                    UserRole                 @default(MONITOR)
+  emailVerified           Boolean                  @default(false) @map("email_verified")
+  emailVerifiedAt         DateTime?                @map("email_verified_at") @db.Timestamp(6)
+  stripeCustomerId        String?                  @map("stripe_customer_id") @db.VarChar(255)
+  avatarUrl               String?                  @map("avatar_url") @db.VarChar(500)
+  timezone                String                   @default("UTC") @db.VarChar(50)
+  lastLoginAt             DateTime?                @map("last_login_at") @db.Timestamp(6)
+  loginCount              Int                      @default(0) @map("login_count")
+  failedLoginCount        Int                      @default(0) @map("failed_login_count")
+  lockedUntil             DateTime?                @map("locked_until") @db.Timestamp(6)
+  twoFactorEnabled        Boolean                  @default(false) @map("two_factor_enabled")
+  twoFactorSecret         String?                  @map("two_factor_secret") @db.VarChar(255)
+  notificationPreferences Json                     @default(dbgenerated("'{}'::jsonb")) @map("notification_preferences")
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt               DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  deletedAt               DateTime?                @map("deleted_at") @db.Timestamp(6)
+  alertHistory            AlertHistory[]
+  alertRules              AlertRule[]
+  apiKeys                 ApiKey[]
+  auditLogs               AuditLog[]
+  dailyAnalytics          DailyAnalytics[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordHistory         PasswordHistory[]
+  passwordResetTokens     PasswordResetToken[]
+  refreshTokens           RefreshToken[]
+  strategies              Strategy[]
+  subscription            Subscription?
+  systemConfigsUpdated    SystemConfig[]
+  trades                  Trade[]
+  twoFactorBackupCodes    TwoFactorBackupCode[]
+
+  @@index([stripeCustomerId])
+  @@index([role])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model RefreshToken {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String        @map("user_id") @db.Uuid
+  tokenHash      String        @unique @map("token_hash") @db.VarChar(255)
+  familyId       String        @default(dbgenerated("gen_random_uuid()")) @map("family_id") @db.Uuid
+  expiresAt      DateTime      @map("expires_at") @db.Timestamp(6)
+  revokedAt      DateTime?     @map("revoked_at") @db.Timestamp(6)
+  replacedById   String?       @unique @map("replaced_by") @db.Uuid
+  ipAddress      String?       @map("ip_address") @db.VarChar(45)
+  userAgent      String?       @map("user_agent") @db.VarChar(500)
+  lastUsedAt     DateTime?     @map("last_used_at") @db.Timestamp(6)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  replacedBy      RefreshToken? @relation("RefreshTokenReplacement", fields: [replacedById], references: [id])
+  replacementFor  RefreshToken? @relation("RefreshTokenReplacement")
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model ApiKey {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  name               String   @db.VarChar(100)
+  keyPrefix          String   @map("key_prefix") @db.VarChar(8)
+  keyHash            String   @unique @map("key_hash") @db.VarChar(255)
+  permissions        Json     @default(dbgenerated("'[\"read\"]'::jsonb"))
+  rateLimitPerMinute Int      @default(60) @map("rate_limit_per_minute")
+  lastUsedAt         DateTime? @map("last_used_at") @db.Timestamp(6)
+  expiresAt          DateTime? @map("expires_at") @db.Timestamp(6)
+  revokedAt          DateTime? @map("revoked_at") @db.Timestamp(6)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyPrefix])
+  @@map("api_keys")
+}
+
+model Subscription {
+  id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String             @unique @map("user_id") @db.Uuid
+  stripeSubscriptionId String             @unique @map("stripe_subscription_id") @db.VarChar(255)
+  stripePriceId        String             @map("stripe_price_id") @db.VarChar(255)
+  plan                 SubscriptionPlan   @default(MONITOR)
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart   DateTime           @map("current_period_start") @db.Timestamp(6)
+  currentPeriodEnd     DateTime           @map("current_period_end") @db.Timestamp(6)
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  trialEnd             DateTime?          @map("trial_end") @db.Timestamp(6)
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([plan])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model SupportedChain {
+  id                      Int                  @id @default(autoincrement())
+  chainId                 Int                  @unique @map("chain_id")
+  name                    String               @db.VarChar(50)
+  rpcUrl                  String               @map("rpc_url") @db.VarChar(500)
+  wsUrl                   String               @map("ws_url") @db.VarChar(500)
+  flashbotsRelayUrl       String?              @map("flashbots_relay_url") @db.VarChar(500)
+  blockTimeMs             Int                  @default(12000) @map("block_time_ms")
+  nativeTokenSymbol       String               @default("ETH") @map("native_token_symbol") @db.VarChar(10)
+  explorerUrl             String               @map("explorer_url") @db.VarChar(500)
+  isActive                Boolean              @default(true) @map("is_active")
+  executorContractAddress String?              @map("executor_contract_address") @db.VarChar(42)
+  createdAt               DateTime             @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt               DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  alertRules              AlertRule[]
+  competitorActivity      CompetitorActivity[]
+  dailyAnalytics          DailyAnalytics[]
+  pools                   Pool[]
+  strategies              Strategy[]
+  tokens                  Token[]
+  trades                  Trade[]
+
+  @@map("supported_chains")
+}
+
+model Token {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  chainId          Int         @map("chain_id")
+  address          String      @db.VarChar(42)
+  symbol           String      @db.VarChar(20)
+  name             String      @db.VarChar(100)
+  decimals         Int         @db.SmallInt
+  isStablecoin     Boolean     @default(false) @map("is_stablecoin")
+  isBlacklisted    Boolean     @default(false) @map("is_blacklisted")
+  blacklistReason  String?     @map("blacklist_reason") @db.VarChar(255)
+  coingeckoId      String?     @map("coingecko_id") @db.VarChar(100)
+  logoUrl          String?     @map("logo_url") @db.VarChar(500)
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt        DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  chain            SupportedChain @relation(fields: [chainId], references: [chainId], onDelete: Restrict)
+  poolsAsToken0    Pool[]      @relation("PoolToken0")
+  poolsAsToken1    Pool[]      @relation("PoolToken1")
+  tradeHopTokenIn  TradeHop[]  @relation("TradeHopTokenIn")
+  tradeHopTokenOut TradeHop[]  @relation("TradeHopTokenOut")
+
+  @@unique([chainId, address])
+  @@index([symbol])
+  @@index([isBlacklisted])
+  @@map("tokens")
+}
+
+model Pool {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  chainId         Int            @map("chain_id")
+  address         String         @db.VarChar(42)
+  dex             Dex
+  dexVersion      DexVersion     @map("dex_version")
+  token0Id        String         @map("token0_id") @db.Uuid
+  token1Id        String         @map("token1_id") @db.Uuid
+  feeBps          Int            @map("fee_bps")
+  tvlUsd          Decimal        @default(0) @map("tvl_usd") @db.Decimal(20, 2)
+  volume24hUsd    Decimal        @default(0) @map("volume_24h_usd") @db.Decimal(20, 2)
+  isActive        Boolean        @default(true) @map("is_active")
+  minTvlThreshold Decimal        @default(10000) @map("min_tvl_threshold") @db.Decimal(20, 2)
+  extraData       Json           @default(dbgenerated("'{}'::jsonb")) @map("extra_data")
+  lastSyncedAt    DateTime?      @map("last_synced_at") @db.Timestamp(6)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  chain           SupportedChain @relation(fields: [chainId], references: [chainId], onDelete: Restrict)
+  poolSnapshots   PoolSnapshot[]
+  token0          Token          @relation("PoolToken0", fields: [token0Id], references: [id], onDelete: Restrict)
+  token1          Token          @relation("PoolToken1", fields: [token1Id], references: [id], onDelete: Restrict)
+  tradeHops       TradeHop[]
+
+  @@unique([chainId, address])
+  @@index([dex])
+  @@index([token0Id, token1Id])
+  @@index([isActive])
+  @@index([tvlUsd])
+  @@map("pools")
+}
+
+model Strategy {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId              String            @map("user_id") @db.Uuid
+  name                String            @db.VarChar(100)
+  chainId             Int               @map("chain_id")
+  isActive            Boolean           @default(false) @map("is_active")
+  minProfitUsd        Decimal           @default(10) @map("min_profit_usd") @db.Decimal(10, 2)
+  maxTradeSizeUsd     Decimal           @default(100000) @map("max_trade_size_usd") @db.Decimal(14, 2)
+  maxHops             Int               @default(4) @map("max_hops") @db.SmallInt
+  allowedDexes        Json              @default(dbgenerated("'[\"uniswap_v2\",\"uniswap_v3\",\"sushiswap\",\"curve\",\"balancer\"]'::jsonb")) @map("allowed_dexes")
+  allowedTokens       Json?             @map("allowed_tokens")
+  blockedTokens       Json              @default(dbgenerated("'[]'::jsonb")) @map("blocked_tokens")
+  flashLoanProvider   FlashLoanProvider @default(AUTO) @map("flash_loan_provider")
+  useFlashbots        Boolean           @default(true) @map("use_flashbots")
+  maxGasPriceGwei     Decimal           @default(100) @map("max_gas_price_gwei") @db.Decimal(10, 2)
+  riskBufferPct       Decimal           @default(0.5) @map("risk_buffer_pct") @db.Decimal(5, 2)
+  useDemandPrediction Boolean           @default(true) @map("use_demand_prediction")
+  executionCount      Int               @default(0) @map("execution_count")
+  totalProfitUsd      Decimal           @default(0) @map("total_profit_usd") @db.Decimal(14, 2)
+  createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt           DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  alertRules          AlertRule[]
+  chain               SupportedChain    @relation(fields: [chainId], references: [chainId], onDelete: Restrict)
+  trades              Trade[]
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([chainId])
+  @@index([isActive])
+  @@map("strategies")
+}
+
+model Trade {
+  id                   String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  strategyId           String            @map("strategy_id") @db.Uuid
+  userId               String            @map("user_id") @db.Uuid
+  chainId              Int               @map("chain_id")
+  status               TradeStatus       @default(PENDING)
+  txHash               String?           @unique @map("tx_hash") @db.VarChar(66)
+  blockNumber          BigInt?           @map("block_number")
+  routePath            Json              @map("route_path")
+  routeHops            Int               @map("route_hops") @db.SmallInt
+  flashLoanProvider    FlashLoanProvider @map("flash_loan_provider")
+  flashLoanToken       String            @map("flash_loan_token") @db.VarChar(42)
+  flashLoanAmount      Decimal           @map("flash_loan_amount") @db.Decimal(30, 0)
+  flashLoanFee         Decimal           @map("flash_loan_fee") @db.Decimal(30, 0)
+  profitRaw            Decimal?          @map("profit_raw") @db.Decimal(30, 0)
+  profitUsd            Decimal?          @map("profit_usd") @db.Decimal(14, 4)
+  gasUsed              BigInt?           @map("gas_used")
+  gasPriceGwei         Decimal?          @map("gas_price_gwei") @db.Decimal(10, 4)
+  gasCostUsd           Decimal?          @map("gas_cost_usd") @db.Decimal(10, 4)
+  netProfitUsd         Decimal?          @map("net_profit_usd") @db.Decimal(14, 4)
+  simulatedProfitUsd   Decimal           @map("simulated_profit_usd") @db.Decimal(14, 4)
+  slippagePct          Decimal?          @map("slippage_pct") @db.Decimal(6, 4)
+  demandPredictionUsed Boolean           @default(false) @map("demand_prediction_used")
+  competingTxsInBlock  Int?              @map("competing_txs_in_block")
+  errorMessage         String?           @map("error_message") @db.Text
+  executionTimeMs      Int               @map("execution_time_ms")
+  submittedAt          DateTime?         @map("submitted_at") @db.Timestamp(6)
+  confirmedAt          DateTime?         @map("confirmed_at") @db.Timestamp(6)
+  createdAt            DateTime          @default(now()) @map("created_at") @db.Timestamp(6)
+  alertHistory         AlertHistory[]
+  chain                SupportedChain    @relation(fields: [chainId], references: [chainId], onDelete: Restrict)
+  hops                 TradeHop[]
+  strategy             Strategy          @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId])
+  @@index([userId])
+  @@index([chainId])
+  @@index([status])
+  @@index([blockNumber])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([chainId, status, createdAt])
+  @@map("trades")
+}
+
+model TradeHop {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tradeId           String   @map("trade_id") @db.Uuid
+  hopIndex          Int      @map("hop_index") @db.SmallInt
+  poolId            String   @map("pool_id") @db.Uuid
+  tokenInId         String   @map("token_in_id") @db.Uuid
+  tokenOutId        String   @map("token_out_id") @db.Uuid
+  amountIn          Decimal  @map("amount_in") @db.Decimal(30, 0)
+  amountOut         Decimal  @map("amount_out") @db.Decimal(30, 0)
+  expectedAmountOut Decimal  @map("expected_amount_out") @db.Decimal(30, 0)
+  slippagePct       Decimal? @map("slippage_pct") @db.Decimal(6, 4)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  pool              Pool     @relation(fields: [poolId], references: [id], onDelete: Restrict)
+  tokenIn           Token    @relation("TradeHopTokenIn", fields: [tokenInId], references: [id], onDelete: Restrict)
+  tokenOut          Token    @relation("TradeHopTokenOut", fields: [tokenOutId], references: [id], onDelete: Restrict)
+  trade             Trade    @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+
+  @@index([tradeId])
+  @@unique([tradeId, hopIndex])
+  @@map("trade_hops")
+}
+
+model DailyAnalytics {
+  id                       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                   String         @map("user_id") @db.Uuid
+  chainId                  Int            @map("chain_id")
+  date                     DateTime       @db.Date
+  totalTrades              Int            @default(0) @map("total_trades")
+  successfulTrades         Int            @default(0) @map("successful_trades")
+  failedTrades             Int            @default(0) @map("failed_trades")
+  totalProfitUsd           Decimal        @default(0) @map("total_profit_usd") @db.Decimal(14, 4)
+  totalGasCostUsd          Decimal        @default(0) @map("total_gas_cost_usd") @db.Decimal(14, 4)
+  totalVolumeUsd           Decimal        @default(0) @map("total_volume_usd") @db.Decimal(18, 4)
+  avgProfitPerTradeUsd     Decimal        @default(0) @map("avg_profit_per_trade_usd") @db.Decimal(10, 4)
+  maxProfitTradeUsd        Decimal        @default(0) @map("max_profit_trade_usd") @db.Decimal(14, 4)
+  avgExecutionTimeMs       Int            @default(0) @map("avg_execution_time_ms")
+  mostProfitableRoute      Json?          @map("most_profitable_route")
+  demandPredictionHitRate  Decimal?       @map("demand_prediction_hit_rate") @db.Decimal(5, 2)
+  createdAt                DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  chain                    SupportedChain @relation(fields: [chainId], references: [chainId], onDelete: Restrict)
+  user                     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chainId, date])
+  @@index([date])
+  @@map("daily_analytics")
+}
+
+model PoolSnapshot {
+  id         BigInt   @id @default(autoincrement())
+  poolId     String   @map("pool_id") @db.Uuid
+  chainId    Int      @map("chain_id")
+  blockNumber BigInt  @map("block_number")
+  reserve0   Decimal  @db.Decimal(30, 0)
+  reserve1   Decimal  @db.Decimal(30, 0)
+  price0In1  Decimal  @map("price_0_in_1") @db.Decimal(30, 18)
+  tvlUsd     Decimal  @map("tvl_usd") @db.Decimal(20, 2)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  pool       Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
+
+  @@index([poolId, blockNumber])
+  @@index([createdAt])
+  @@map("pool_snapshots")
+}
+
+model AlertRule {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String              @map("user_id") @db.Uuid
+  type            AlertType
+  chainId         Int?                @map("chain_id")
+  strategyId      String?             @map("strategy_id") @db.Uuid
+  thresholdValue  Decimal?            @map("threshold_value") @db.Decimal(14, 4)
+  deliveryChannel AlertChannel        @default(DASHBOARD) @map("delivery_channel")
+  deliveryConfig  Json                @default(dbgenerated("'{}'::jsonb")) @map("delivery_config")
+  isActive        Boolean             @default(true) @map("is_active")
+  lastTriggeredAt DateTime?           @map("last_triggered_at") @db.Timestamp(6)
+  triggerCount    Int                 @default(0) @map("trigger_count")
+  cooldownSeconds Int                 @default(60) @map("cooldown_seconds")
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  chain           SupportedChain?     @relation(fields: [chainId], references: [chainId], onDelete: SetNull)
+  history         AlertHistory[]
+  strategy        Strategy?           @relation(fields: [strategyId], references: [id], onDelete: SetNull)
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type, isActive])
+  @@map("alerts")
+}
+
+model AlertHistory {
+  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  alertId        String              @map("alert_id") @db.Uuid
+  userId         String              @map("user_id") @db.Uuid
+  tradeId        String?             @map("trade_id") @db.Uuid
+  message        String              @db.Text
+  deliveryStatus AlertDeliveryStatus @default(PENDING) @map("delivery_status")
+  deliveredAt    DateTime?           @map("delivered_at") @db.Timestamp(6)
+  errorMessage   String?             @map("error_message") @db.Text
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamp(6)
+  alertRule      AlertRule           @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  trade          Trade?              @relation(fields: [tradeId], references: [id], onDelete: SetNull)
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([alertId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("alert_history")
+}
+
+model CompetitorActivity {
+  id                 BigInt        @id @default(autoincrement())
+  chainId            Int           @map("chain_id")
+  blockNumber        BigInt        @map("block_number")
+  txHash             String        @map("tx_hash") @db.VarChar(66)
+  botAddress         String        @map("bot_address") @db.VarChar(42)
+  routePath          Json          @map("route_path")
+  estimatedProfitUsd Decimal?      @map("estimated_profit_usd") @db.Decimal(14, 4)
+  gasUsed            BigInt        @map("gas_used")
+  gasPriceGwei       Decimal       @map("gas_price_gwei") @db.Decimal(10, 4)
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  chain              SupportedChain @relation(fields: [chainId], references: [chainId], onDelete: Restrict)
+
+  @@index([chainId])
+  @@index([botAddress])
+  @@index([blockNumber])
+  @@index([createdAt])
+  @@map("competitor_activity")
+}
+
+model SystemConfig {
+  id          Int       @id @default(autoincrement())
+  key         String    @unique @db.VarChar(100)
+  value       Json
+  description String    @db.Text
+  updatedById String?   @map("updated_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  updatedBy   User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("system_config")
+}
+
+model AuditLog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String?  @map("user_id") @db.Uuid
+  action       String   @db.VarChar(50)
+  resourceType String   @map("resource_type") @db.VarChar(50)
+  resourceId   String?  @map("resource_id") @db.VarChar(100)
+  details      Json     @default(dbgenerated("'{}'::jsonb"))
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  userAgent    String?  @map("user_agent") @db.VarChar(500)
+  requestId    String?  @map("request_id") @db.VarChar(100)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model PasswordResetToken {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  tokenHash  String   @unique @map("token_hash") @db.VarChar(255)
+  expiresAt  DateTime @map("expires_at") @db.Timestamp(6)
+  usedAt     DateTime? @map("used_at") @db.Timestamp(6)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  tokenHash  String   @unique @map("token_hash") @db.VarChar(255)
+  expiresAt  DateTime @map("expires_at") @db.Timestamp(6)
+  usedAt     DateTime? @map("used_at") @db.Timestamp(6)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("email_verification_tokens")
+}
+
+model TwoFactorBackupCode {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  codeHash   String   @unique @map("code_hash") @db.VarChar(255)
+  usedAt     DateTime? @map("used_at") @db.Timestamp(6)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("two_factor_backup_codes")
+}
+
+model PasswordHistory {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("password_history")
+}
+
+model WebhookEvent {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider        WebhookProvider    @default(STRIPE)
+  providerEventId String             @map("provider_event_id") @db.VarChar(255)
+  eventType       String             @map("event_type") @db.VarChar(100)
+  payload         Json
+  status          WebhookEventStatus @default(PENDING)
+  attempts        Int                @default(0)
+  processedAt     DateTime?          @map("processed_at") @db.Timestamp(6)
+  errorMessage    String?            @map("error_message") @db.Text
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@unique([provider, providerEventId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("webhook_events")
+}

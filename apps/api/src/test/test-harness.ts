@@ -1,0 +1,573 @@
+import { randomUUID } from 'node:crypto';
+import { EventEmitter } from 'node:events';
+
+import { buildApiApp } from '../app';
+import {
+  OpportunitiesService,
+  RedisOpportunitiesRepository,
+  type DashboardPeriodShell,
+} from '../modules/opportunities/opportunities.service';
+import {
+  PrismaAuthRepository,
+  RedisEmailJobQueue,
+  RedisEphemeralAuthStore,
+  RedisRateLimitStore,
+  type EmailJob,
+  type PrismaClientLike,
+  type RedisClientLike,
+  type UserRecord,
+} from '../modules/auth/auth.repository';
+import { PrismaStrategiesRepository } from '../modules/strategies/strategies.repository';
+import type { OpportunityView } from '@flashroute/shared/contracts/opportunity';
+
+type SortDirection = 'asc' | 'desc';
+
+const sortByCreatedAt = <T extends { createdAt: Date }>(records: T[], direction: SortDirection) =>
+  [...records].sort((left, right) =>
+    direction === 'asc'
+      ? left.createdAt.getTime() - right.createdAt.getTime()
+      : right.createdAt.getTime() - left.createdAt.getTime(),
+  );
+
+class FakeRedisClient implements RedisClientLike {
+  private readonly values = new Map<string, { value: string; expiresAt: number | null }>();
+  private readonly lists = new Map<string, string[]>();
+  private readonly sortedSets = new Map<string, Array<{ score: number; member: string }>>();
+  private readonly sets = new Map<string, Set<string>>();
+  private readonly emitter = new EventEmitter();
+  private readonly zrangeReads = new Map<string, number>();
+
+  private purgeExpired(key: string) {
+    const record = this.values.get(key);
+    if (record && record.expiresAt !== null && record.expiresAt <= Date.now()) {
+      this.values.delete(key);
+    }
+  }
+
+  public async get(key: string): Promise<string | null> {
+    this.purgeExpired(key);
+    return this.values.get(key)?.value ?? null;
+  }
+
+  public async setex(key: string, ttlSeconds: number, value: string): Promise<unknown> {
+    this.values.set(key, { value, expiresAt: Date.now() + ttlSeconds * 1000 });
+    return 'OK';
+  }
+
+  public async del(key: string): Promise<number> {
+    const hadValue = this.values.delete(key);
+    return hadValue ? 1 : 0;
+  }
+
+  public async incr(key: string): Promise<number> {
+    this.purgeExpired(key);
+    const current = Number(this.values.get(key)?.value ?? '0') + 1;
+    const expiresAt = this.values.get(key)?.expiresAt ?? null;
+    this.values.set(key, { value: String(current), expiresAt });
+    return current;
+  }
+
+  public async expire(key: string, ttlSeconds: number): Promise<number> {
+    this.purgeExpired(key);
+    const record = this.values.get(key);
+    if (!record) {
+      return 0;
+    }
+    this.values.set(key, { ...record, expiresAt: Date.now() + ttlSeconds * 1000 });
+    return 1;
+  }
+
+  public async ttl(key: string): Promise<number> {
+    this.purgeExpired(key);
+    const record = this.values.get(key);
+    if (!record) {
+      return -2;
+    }
+    if (record.expiresAt === null) {
+      return -1;
+    }
+    return Math.max(1, Math.ceil((record.expiresAt - Date.now()) / 1000));
+  }
+
+  public async rpush(key: string, value: string): Promise<number> {
+    const list = this.lists.get(key) ?? [];
+    list.push(value);
+    this.lists.set(key, list);
+    return list.length;
+  }
+
+  public async lrange(key: string, start: number, stop: number): Promise<string[]> {
+    const list = this.lists.get(key) ?? [];
+    const normalizedStop = stop < 0 ? list.length - 1 : stop;
+    return list.slice(start, normalizedStop + 1);
+  }
+
+  public async zadd(key: string, score: number, member: string): Promise<number> {
+    const set = this.sortedSets.get(key) ?? [];
+    const withoutExisting = set.filter((entry) => entry.member !== member);
+    withoutExisting.push({ score, member });
+    this.sortedSets.set(key, withoutExisting);
+    return 1;
+  }
+
+  public async zrange(key: string, start: number, stop: number, rev?: 'REV'): Promise<string[]> {
+    this.zrangeReads.set(key, (this.zrangeReads.get(key) ?? 0) + 1);
+    const sorted = [...(this.sortedSets.get(key) ?? [])].sort((left, right) =>
+      rev === 'REV' ? right.score - left.score : left.score - right.score,
+    );
+    const normalizedStop = stop < 0 ? sorted.length - 1 : stop;
+    return sorted.slice(start, normalizedStop + 1).map((entry) => entry.member);
+  }
+
+  public async zrem(key: string, ...members: string[]): Promise<number> {
+    const set = this.sortedSets.get(key) ?? [];
+    const next = set.filter((entry) => !members.includes(entry.member));
+    this.sortedSets.set(key, next);
+    return set.length - next.length;
+  }
+
+  public async sadd(key: string, ...members: string[]): Promise<number> {
+    const set = this.sets.get(key) ?? new Set<string>();
+    for (const member of members) {
+      set.add(member);
+    }
+    this.sets.set(key, set);
+    return set.size;
+  }
+
+  public async smembers(key: string): Promise<string[]> {
+    return [...(this.sets.get(key) ?? new Set<string>())];
+  }
+
+  public async publish(channel: string, payload: string): Promise<number> {
+    this.emitter.emit('pmessage', 'opportunities:*', channel, payload);
+    return 1;
+  }
+
+  public async psubscribe(_pattern: string): Promise<void> {}
+
+  public async punsubscribe(_pattern: string): Promise<void> {}
+
+  public on(event: 'pmessage', listener: (pattern: string, channel: string, payload: string) => void): this {
+    this.emitter.on(event, listener);
+    return this;
+  }
+
+  public off(event: 'pmessage', listener: (pattern: string, channel: string, payload: string) => void): this {
+    this.emitter.off(event, listener);
+    return this;
+  }
+
+  public getZrangeReadCount(key: string): number {
+    return this.zrangeReads.get(key) ?? 0;
+  }
+}
+
+class FakePrismaClient implements PrismaClientLike {
+  public readonly users: any[] = [];
+  public readonly refreshTokens: any[] = [];
+  public readonly emailVerificationTokens: any[] = [];
+  public readonly passwordResetTokens: any[] = [];
+ public readonly backupCodes: any[] = [];
+  public readonly apiKeys: any[] = [];
+  public readonly passwordHistoryRows: any[] = [];
+  public readonly subscriptions: any[] = [];
+  public readonly auditLogs: any[] = [];
+  public readonly strategies: any[] = [];
+  public readonly supportedChains: any[] = [
+    { id: 1, chainId: 1, name: 'Ethereum', isActive: true, executorContractAddress: '0xexecutor-eth' },
+    { id: 2, chainId: 42161, name: 'Arbitrum', isActive: true, executorContractAddress: '0xexecutor-arb' },
+    { id: 3, chainId: 10, name: 'Optimism', isActive: true, executorContractAddress: '0xexecutor-op' },
+    { id: 4, chainId: 137, name: 'Polygon', isActive: true, executorContractAddress: '0xexecutor-polygon' },
+  ];
+
+  public readonly user = {
+    findUnique: async ({ where }: { where: { id?: string; email?: string } }) =>
+      this.users.find((user) => (where.id ? user.id === where.id : user.email === where.email)) ?? null,
+    create: async ({ data }: { data: any }) => {
+      const now = new Date();
+      const record = {
+        id: randomUUID(),
+        emailVerifiedAt: null,
+        lastLoginAt: null,
+        loginCount: 0,
+        failedLoginCount: 0,
+        lockedUntil: null,
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        createdAt: now,
+        updatedAt: now,
+        deletedAt: null,
+        subscription: null,
+        ...data,
+      };
+      this.users.push(record);
+      return record;
+    },
+    update: async ({ where, data }: { where: { id: string }; data: any }) => {
+      const record = this.users.find((user) => user.id === where.id);
+      Object.assign(record, data, { updatedAt: new Date() });
+      return record;
+    },
+  };
+
+  public readonly refreshToken = {
+    create: async ({ data }: { data: any }) => {
+      const record = { id: randomUUID(), createdAt: new Date(), ...data };
+      this.refreshTokens.push(record);
+      return record;
+    },
+    findUnique: async ({ where }: { where: { tokenHash?: string; id?: string } }) =>
+      this.refreshTokens.find((token) => (where.id ? token.id === where.id : token.tokenHash === where.tokenHash)) ?? null,
+    update: async ({ where, data }: { where: { id: string }; data: any }) => {
+      const record = this.refreshTokens.find((token) => token.id === where.id);
+      Object.assign(record, data);
+      return record;
+    },
+    updateMany: async ({ where, data }: { where: any; data: any }) => {
+      let count = 0;
+      for (const record of this.refreshTokens) {
+        const matches = Object.entries(where).every(([key, value]) => record[key] === value);
+        if (matches) {
+          Object.assign(record, data);
+          count += 1;
+        }
+      }
+      return { count };
+    },
+    findMany: async ({ where, orderBy }: { where: any; orderBy?: { createdAt: SortDirection } }) => {
+      const filtered = this.refreshTokens.filter((record) =>
+        Object.entries(where).every(([key, value]) => record[key] === value),
+      );
+      return orderBy ? sortByCreatedAt(filtered, orderBy.createdAt) : filtered;
+    },
+  };
+
+  public readonly emailVerificationToken = {
+    create: async ({ data }: { data: any }) => {
+      const record = { id: randomUUID(), usedAt: null, createdAt: new Date(), ...data };
+      this.emailVerificationTokens.push(record);
+      return record;
+    },
+    findUnique: async ({ where }: { where: { tokenHash: string } }) =>
+      this.emailVerificationTokens.find((token) => token.tokenHash === where.tokenHash) ?? null,
+    update: async ({ where, data }: { where: { id: string }; data: any }) => {
+      const record = this.emailVerificationTokens.find((token) => token.id === where.id);
+      Object.assign(record, data);
+      return record;
+    },
+    deleteMany: async ({ where }: { where: any }) => {
+      const before = this.emailVerificationTokens.length;
+      for (let index = this.emailVerificationTokens.length - 1; index >= 0; index -= 1) {
+        const record = this.emailVerificationTokens[index]!;
+        if (Object.entries(where).every(([key, value]) => record[key] === value)) {
+          this.emailVerificationTokens.splice(index, 1);
+        }
+      }
+      return { count: before - this.emailVerificationTokens.length };
+    },
+  };
+
+  public readonly passwordResetToken = {
+    create: async ({ data }: { data: any }) => {
+      const record = { id: randomUUID(), usedAt: null, createdAt: new Date(), ...data };
+      this.passwordResetTokens.push(record);
+      return record;
+    },
+    findUnique: async ({ where }: { where: { tokenHash: string } }) =>
+      this.passwordResetTokens.find((token) => token.tokenHash === where.tokenHash) ?? null,
+    update: async ({ where, data }: { where: { id: string }; data: any }) => {
+      const record = this.passwordResetTokens.find((token) => token.id === where.id);
+      Object.assign(record, data);
+      return record;
+    },
+    deleteMany: async ({ where }: { where: any }) => {
+      const before = this.passwordResetTokens.length;
+      for (let index = this.passwordResetTokens.length - 1; index >= 0; index -= 1) {
+        const record = this.passwordResetTokens[index]!;
+        if (Object.entries(where).every(([key, value]) => record[key] === value)) {
+          this.passwordResetTokens.splice(index, 1);
+        }
+      }
+      return { count: before - this.passwordResetTokens.length };
+    },
+  };
+
+  public readonly twoFactorBackupCode = {
+    createMany: async ({ data }: { data: any[] }) => {
+      for (const row of data) {
+        this.backupCodes.push({ id: randomUUID(), usedAt: null, createdAt: new Date(), ...row });
+      }
+      return { count: data.length };
+    },
+    findMany: async ({ where, orderBy }: { where: any; orderBy?: { createdAt: SortDirection } }) => {
+      const filtered = this.backupCodes.filter((record) => Object.entries(where).every(([key, value]) => record[key] === value));
+      return orderBy ? sortByCreatedAt(filtered, orderBy.createdAt) : filtered;
+    },
+    update: async ({ where, data }: { where: { id: string }; data: any }) => {
+      const record = this.backupCodes.find((code) => code.id === where.id);
+      Object.assign(record, data);
+      return record;
+    },
+    deleteMany: async ({ where }: { where: any }) => {
+      const before = this.backupCodes.length;
+      for (let index = this.backupCodes.length - 1; index >= 0; index -= 1) {
+        const record = this.backupCodes[index]!;
+        if (Object.entries(where).every(([key, value]) => record[key] === value)) {
+          this.backupCodes.splice(index, 1);
+        }
+      }
+      return { count: before - this.backupCodes.length };
+    },
+  };
+
+  public readonly apiKey = {
+    create: async ({ data }: { data: any }) => {
+      const record = { id: randomUUID(), createdAt: new Date(), lastUsedAt: null, revokedAt: null, ...data };
+      this.apiKeys.push(record);
+      return record;
+    },
+    findMany: async ({ where, orderBy }: { where: any; orderBy?: { createdAt: SortDirection } }) => {
+      const filtered = this.apiKeys.filter((record) => Object.entries(where).every(([key, value]) => record[key] === value));
+      return orderBy ? sortByCreatedAt(filtered, orderBy.createdAt) : filtered;
+    },
+    findFirst: async ({ where }: { where: any }) =>
+      this.apiKeys.find((record) => Object.entries(where).every(([key, value]) => record[key] === value)) ?? null,
+    update: async ({ where, data }: { where: { id: string }; data: any }) => {
+      const record = this.apiKeys.find((key) => key.id === where.id);
+      Object.assign(record, data);
+      return record;
+    },
+  };
+
+  public readonly passwordHistory = {
+    create: async ({ data }: { data: any }) => {
+      const record = { id: randomUUID(), createdAt: new Date(), ...data };
+      this.passwordHistoryRows.push(record);
+      return record;
+    },
+    findMany: async ({ where, orderBy, take }: { where: any; orderBy?: { createdAt: SortDirection }; take?: number }) => {
+      const filtered = this.passwordHistoryRows.filter((record) =>
+        Object.entries(where).every(([key, value]) => record[key] === value),
+      );
+      const sorted = orderBy ? sortByCreatedAt(filtered, orderBy.createdAt) : filtered;
+      return take === undefined ? sorted : sorted.slice(0, take);
+    },
+  };
+
+  public readonly auditLog = {
+    create: async ({ data }: { data: any }) => {
+      const record = { id: randomUUID(), createdAt: new Date(), ...data };
+      this.auditLogs.push(record);
+      return record;
+    },
+  };
+
+  public readonly supportedChain = {
+    findUnique: async ({ where }: { where: { chainId: number } }) =>
+      this.supportedChains.find((chain) => chain.chainId === where.chainId) ?? null,
+  };
+
+  public readonly strategy = {
+    count: async ({ where }: { where: any }) =>
+      this.strategies.filter((record) => Object.entries(where).every(([key, value]) => {
+        if (typeof value === 'object' && value !== null && 'contains' in value) {
+          return String(record[key]).toLowerCase().includes(String((value as any).contains).toLowerCase());
+        }
+        return record[key] === value;
+      })).length,
+    create: async ({ data }: { data: any }) => {
+      const now = new Date();
+      const record = {
+        id: randomUUID(),
+        isActive: false,
+        description: data.description ?? '',
+        minProfitUsd: data.minProfitUsd ?? 10,
+        maxTradeSizeUsd: data.maxTradeSizeUsd ?? 100000,
+        maxHops: data.maxHops ?? 4,
+        maxSlippageBps: data.maxSlippageBps ?? 100,
+        cooldownSeconds: data.cooldownSeconds ?? 0,
+        allowedDexes: data.allowedDexes ?? ['uniswap_v2', 'uniswap_v3', 'sushiswap', 'curve', 'balancer'],
+        flashLoanProvider: data.flashLoanProvider ?? 'auto',
+        useFlashbots: data.useFlashbots ?? true,
+        maxGasPriceGwei: data.maxGasPriceGwei ?? 100,
+        riskBufferPct: data.riskBufferPct ?? 0.5,
+        useDemandPrediction: data.useDemandPrediction ?? true,
+        executionCount: 0,
+        totalProfitUsd: 0,
+        createdAt: now,
+        updatedAt: now,
+        ...data,
+      };
+      this.strategies.push(record);
+      return { ...record, chain: this.supportedChains.find((chain) => chain.chainId === record.chainId) ?? null };
+    },
+    findFirst: async ({ where }: { where: any }) => {
+      const record = this.strategies.find((candidate) => Object.entries(where).every(([key, value]) => candidate[key] === value));
+      return record ? { ...record, chain: this.supportedChains.find((chain) => chain.chainId === record.chainId) ?? null } : null;
+    },
+    findMany: async ({ where, skip = 0, take }: { where: any; skip?: number; take?: number }) => {
+      const filtered = this.strategies.filter((candidate) => Object.entries(where).every(([key, value]) => {
+        if (typeof value === 'object' && value !== null && 'contains' in value) {
+          return String(candidate[key]).toLowerCase().includes(String((value as any).contains).toLowerCase());
+        }
+        return candidate[key] === value;
+      }));
+      const sliced = take === undefined ? filtered.slice(skip) : filtered.slice(skip, skip + take);
+      return sliced.map((record) => ({ ...record, chain: this.supportedChains.find((chain) => chain.chainId === record.chainId) ?? null }));
+    },
+    update: async ({ where, data }: { where: { id: string }; data: any }) => {
+      const record = this.strategies.find((candidate) => candidate.id === where.id)!;
+      Object.assign(record, data, { updatedAt: new Date() });
+      return { ...record, chain: this.supportedChains.find((chain) => chain.chainId === record.chainId) ?? null };
+    },
+    delete: async ({ where }: { where: { id: string } }) => {
+      const index = this.strategies.findIndex((candidate) => candidate.id === where.id);
+      const [deleted] = this.strategies.splice(index, 1);
+      return deleted;
+    },
+  };
+}
+
+export const createTestApiHarness = async () => {
+  const prisma = new FakePrismaClient();
+  const redis = new FakeRedisClient();
+  const opportunitiesRepository = new RedisOpportunitiesRepository(redis as never);
+  const opportunitiesService = new OpportunitiesService(
+    opportunitiesRepository,
+    () => new Date('2026-03-22T12:00:00.000Z').getTime(),
+  );
+
+  const authRepository = new PrismaAuthRepository(prisma);
+  const strategiesRepository = new PrismaStrategiesRepository(prisma as never);
+  const ephemeralAuthStore = new RedisEphemeralAuthStore(redis, 'fr:');
+  const emailQueue = new RedisEmailJobQueue(redis, 'fr:queue:email');
+  const rateLimitStore = new RedisRateLimitStore(redis, 'fr:');
+
+  const app = buildApiApp({
+    authRepository,
+    strategiesRepository,
+    ephemeralAuthStore,
+    emailQueue,
+    rateLimitStore,
+    opportunitiesCache: redis as never,
+    strategyEventPublisher: redis as never,
+    livePubSubSubscriber: redis as never,
+    auth: {
+      jwtSecret: '12345678901234567890123456789012',
+      accessTokenTtlSeconds: 900,
+      refreshTokenTtlSeconds: 604800,
+      bcryptRounds: 4,
+      refreshTokenPepper: 'pepper',
+      apiKeyPepper: 'api-pepper',
+    },
+    opportunitiesService,
+  });
+
+  await app.ready();
+
+  return {
+    app,
+    prisma,
+    redis,
+    getUserByEmail: (email: string) => prisma.users.find((user) => user.email === email) as UserRecord | undefined,
+    getUserById: (userId: string) => prisma.users.find((user) => user.id === userId) as UserRecord | undefined,
+    listRefreshTokensByEmail: (email: string) => {
+      const user = prisma.users.find((candidate) => candidate.email === email);
+      if (!user) {
+        return [];
+      }
+      const tokens = prisma.refreshTokens
+        .filter((token) => token.userId === user.id)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      const latestFamilyId = tokens.at(-1)?.familyId;
+      return latestFamilyId ? tokens.filter((token) => token.familyId === latestFamilyId) : [];
+    },
+    getQueuedEmailJobs: async () => (await redis.lrange('fr:queue:email', 0, -1)).map((value) => JSON.parse(value) as EmailJob),
+    seedOpportunities: async (chainId: number, opportunities: OpportunityView[]) => {
+      for (const opportunity of opportunities) {
+        await opportunitiesRepository.save({
+          ...opportunity,
+          chainId,
+          hops: opportunity.hops ?? opportunity.routePath.length,
+        });
+      }
+    },
+    publishOpportunityUpdate: async (chainId: number, opportunity: OpportunityView) => {
+      await redis.publish(`opportunities:${chainId}`, JSON.stringify({ type: 'opportunity', data: opportunity }));
+    },
+    publishTradeLive: async (trade: {
+      id: string;
+      executedAt: string;
+      route: string;
+      netProfitUsd: number;
+      gasCostUsd: number;
+      status: string;
+      txHash: string;
+    }) => {
+      await redis.publish('trades:live', JSON.stringify({ type: 'trade', data: trade }));
+    },
+    publishSystemAlert: async (alert: {
+      id: string;
+      severity: string;
+      message: string;
+      createdAt: string;
+    }) => {
+      await redis.publish('system:alerts', JSON.stringify({ type: 'alert', data: alert }));
+    },
+    getOpportunityRedisReadCount: (chainId: number) => redis.getZrangeReadCount(`fr:opportunities:${chainId}`),
+    hasOpportunity: async (chainId: number, opportunityId: string) =>
+      (await opportunitiesRepository.list(chainId)).some((opportunity) => opportunity.id === opportunityId),
+    getDashboardStats: (period: DashboardPeriodShell['period'], chainId?: number): Promise<DashboardPeriodShell> =>
+      opportunitiesService.getDashboardShell(period, chainId),
+    setUserRole: (userId: string, role: UserRecord['role']) => {
+      const user = prisma.users.find((candidate) => candidate.id === userId);
+      if (user) {
+        user.role = role;
+      }
+    },
+    getApiKeysByUserId: (userId: string) => prisma.apiKeys.filter((key) => key.userId === userId),
+    listStrategiesByUserId: (userId: string) => prisma.strategies.filter((strategy) => strategy.userId === userId),
+    setSupportedChainExecutorContract: (chainId: number, executorContractAddress: string | null) => {
+      const chain = prisma.supportedChains.find((candidate) => candidate.chainId === chainId);
+      if (chain) {
+        chain.executorContractAddress = executorContractAddress;
+      }
+    },
+    setTwoFactorSecretForUser: (userId: string, twoFactorSecret: string) => {
+      const user = prisma.users.find((candidate) => candidate.id === userId);
+      if (user) {
+        user.twoFactorEnabled = true;
+        user.twoFactorSecret = twoFactorSecret;
+      }
+    },
+    getRedisValue: (key: string) => redis.get(key),
+    setSubscriptionForUser: (
+      userId: string,
+      input: { plan: string; status: string; currentPeriodEnd: Date; currentPeriodStart?: Date },
+    ) => {
+      const user = prisma.users.find((candidate) => candidate.id === userId);
+      if (!user) {
+        return;
+      }
+      const subscription = {
+        id: randomUUID(),
+        userId,
+        plan: input.plan,
+        status: input.status,
+        currentPeriodStart: input.currentPeriodStart ?? new Date('2026-03-01T00:00:00.000Z'),
+        currentPeriodEnd: input.currentPeriodEnd,
+      };
+      user.subscription = subscription;
+      prisma.subscriptions.push(subscription);
+    },
+    listAuditActionsForUser: (email: string) => {
+      const user = prisma.users.find((candidate) => candidate.email === email);
+      if (!user) {
+        return [] as string[];
+      }
+      return prisma.auditLogs.filter((log) => log.userId === user.id).map((log) => log.action);
+    },
+    findAuditLogByAction: (action: string) => prisma.auditLogs.find((log) => log.action === action),
+  };
+};

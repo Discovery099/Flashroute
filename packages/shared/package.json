@@ -1,0 +1,25 @@
+{
+  "name": "@flashroute/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./constants": "./src/constants.ts",
+    "./contracts/opportunity": "./src/contracts/opportunity.ts",
+    "./contracts/pools": "./src/contracts/pools.ts",
+    "./errors": "./src/errors.ts",
+    "./health": "./src/health.ts",
+    "./logger": "./src/logger.ts"
+  },
+  "scripts": {
+    "lint": "node -e \"console.log('shared lint placeholder')\"",
+    "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "test": "pnpm exec vitest run --pool forks src/errors.test.ts src/logger.test.ts src/health.test.ts",
+    "build": "node -e \"console.log('shared build placeholder')\"",
+    "dev": "node -e \"console.log('shared dev placeholder')\""
+  },
+  "dependencies": {
+    "pino": "^9.6.0"
+  }
+}

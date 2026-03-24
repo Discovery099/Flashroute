@@ -1,0 +1,20 @@
+{
+  "name": "@flashroute/blockchain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./amm/uniswap-v2": "./src/amm/uniswap-v2.ts",
+    "./amm/uniswap-v3": "./src/amm/uniswap-v3.ts",
+    "./amm/curve": "./src/amm/curve.ts",
+    "./amm/balancer": "./src/amm/balancer.ts"
+  },
+  "scripts": {
+    "lint": "node -e \"console.log('blockchain lint placeholder')\"",
+    "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
+    "test": "pnpm exec vitest run --pool forks src/amm/uniswap-v2.test.ts src/amm/uniswap-v3.test.ts src/amm/curve.test.ts src/amm/curve-swap.test.ts src/amm/balancer.test.ts",
+    "build": "node -e \"console.log('blockchain build placeholder')\"",
+    "dev": "node -e \"console.log('blockchain dev placeholder')\""
+  }
+}
