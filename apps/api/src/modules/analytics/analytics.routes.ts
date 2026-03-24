@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { success } from '../../app';
+import { success, ApiError } from '../../app';
 import type { AnalyticsService } from './analytics.service';
 import {
   analyticsOverviewQuerySchema,
@@ -24,10 +24,7 @@ export const registerAnalyticsRoutes = (app: FastifyInstance, service: Analytics
   app.get('/api/v1/analytics/competitors', { preHandler: app.authenticate() }, async (request, reply) => {
     const query = analyticsCompetitorsQuerySchema.parse(request.query);
     if (!['trader', 'executor', 'institutional'].includes(request.principal!.role)) {
-      return reply.code(403).send({
-        success: false,
-        error: { code: 'TIER_LIMIT', message: 'Competitor analytics require Trader plan or higher.' },
-      });
+      throw new ApiError(403, 'TIER_LIMIT', 'Competitor analytics require Trader plan or higher.');
     }
     const data = await service.getCompetitors(query);
     return success(reply, 200, data);
