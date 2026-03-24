@@ -1,5 +1,8 @@
-export const PERIOD_VALUES = ['7d', '30d', '90d', 'all'] as const;
-export type Period = typeof PERIOD_VALUES[number];
+import { PERIOD_VALUES } from './analytics.schemas';
+import type { Period } from './analytics.schemas';
+
+export type { Period } from './analytics.schemas';
+export { PERIOD_VALUES };
 export const CHAIN_IDS = [1, 42161, 10, 137] as const;
 
 export interface AnalyticsOverviewData {

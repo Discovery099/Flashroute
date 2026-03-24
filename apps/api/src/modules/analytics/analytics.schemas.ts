@@ -5,7 +5,7 @@ export type Period = typeof PERIOD_VALUES[number];
 export const analyticsPeriodSchema = z.enum(PERIOD_VALUES).default('7d');
 
 export const baseAnalyticsQuerySchema = z.object({
-  chainId: z.string().transform((v) => (v ? Number(v) : undefined)).optional(),
+  chainId: z.coerce.number().int().positive().optional(),
   period: analyticsPeriodSchema.optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
@@ -18,20 +18,17 @@ export const analyticsOverviewQuerySchema = baseAnalyticsQuerySchema.extend({
 
 export const analyticsRoutesQuerySchema = baseAnalyticsQuerySchema.extend({
   strategyId: z.string().uuid().optional(),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
-  limit: z.coerce.number().min(1).max(100).default(20),
 });
 
 export const analyticsCompetitorsQuerySchema = z.object({
-  chainId: z.string().transform((v) => (v ? Number(v) : undefined)).optional(),
+  chainId: z.coerce.number().int().positive().optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
   limit: z.coerce.number().min(1).max(100).default(20),
 });
 
 export const analyticsGasQuerySchema = z.object({
-  chainId: z.string().transform((v) => (v ? Number(v) : undefined)).optional(),
+  chainId: z.coerce.number().int().positive().optional(),
   period: analyticsPeriodSchema.default('7d'),
 });
 
