@@ -5,6 +5,8 @@ export const PERIOD_OPTIONS = [
   { value: 'all', label: 'All' },
 ];
 
+// Note: values are strings to match URL search param format.
+// The useAnalytics* hooks accept chainId as number and convert via buildParams.
 export const CHAIN_OPTIONS = [
   { value: '', label: 'All Chains' },
   { value: '1', label: 'Ethereum' },

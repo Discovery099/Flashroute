@@ -25,9 +25,9 @@ export interface CompetitorData {
 }
 
 export interface GasAnalytics {
-  currentBaseFeeGwei: number | null; avgBaseFee24h: null; avgPriorityFee24h: null;
+  currentBaseFeeGwei: number | null; avgBaseFee24h: number | null; avgPriorityFee24h: number | null;
   ourAvgGasCost: number | null; gasSpentTotalUsd: number | null;
-  gasSavedByFlashbotsUsd: null; optimalExecutionHours: null;
+  gasSavedByFlashbotsUsd: number | null; optimalExecutionHours: number[] | null;
   gasTrend: Array<{ hour: string; avgBaseFeeGwei: number | null; avgPriorityFeeGwei: number | null }>;
 }
 
@@ -40,23 +40,23 @@ const buildParams = (params: Record<string, unknown>) => {
 export const useAnalyticsOverview = (params: { period?: string; chainId?: number }) =>
   useQuery<{ success: true; data: AnalyticsOverviewData }>({
     queryKey: ['analytics-overview', params],
-    queryFn: () => fetch(`${API_BASE}/analytics/overview?${buildParams(params)}`).then((r) => r.json()),
+    queryFn: () => fetch(`${API_BASE}/analytics/overview?${buildParams(params)}`).then((r) => { if (!r.ok) throw new Error('API error'); return r.json(); }) as Promise<{ success: true; data: AnalyticsOverviewData }>,
   });
 
 export const useAnalyticsRoutes = (params: { period?: string; chainId?: number; limit?: number }) =>
   useQuery<{ success: true; data: { routes: RouteAnalytics[] } }>({
     queryKey: ['analytics-routes', params],
-    queryFn: () => fetch(`${API_BASE}/analytics/routes?${buildParams(params)}`).then((r) => r.json()),
+    queryFn: () => fetch(`${API_BASE}/analytics/routes?${buildParams(params)}`).then((r) => { if (!r.ok) throw new Error('API error'); return r.json(); }) as Promise<{ success: true; data: { routes: RouteAnalytics[] } }>,
   });
 
 export const useAnalyticsCompetitors = (params: { chainId?: number; limit?: number }) =>
-  useQuery<{ success: true; data: { competitors: CompetitorData[]; totalCompetitorTrades: number; ourWinRate: null } }>({
+  useQuery<{ success: true; data: { competitors: CompetitorData[]; totalCompetitorTrades: number; ourWinRate: number | null } }>({
     queryKey: ['analytics-competitors', params],
-    queryFn: () => fetch(`${API_BASE}/analytics/competitors?${buildParams(params)}`).then((r) => r.json()),
+    queryFn: () => fetch(`${API_BASE}/analytics/competitors?${buildParams(params)}`).then((r) => { if (!r.ok) throw new Error('API error'); return r.json(); }) as Promise<{ success: true; data: { competitors: CompetitorData[]; totalCompetitorTrades: number; ourWinRate: number | null } }>,
   });
 
 export const useAnalyticsGas = (params: { period?: string; chainId?: number }) =>
   useQuery<{ success: true; data: { gas: GasAnalytics } }>({
     queryKey: ['analytics-gas', params],
-    queryFn: () => fetch(`${API_BASE}/analytics/gas?${buildParams(params)}`).then((r) => r.json()),
+    queryFn: () => fetch(`${API_BASE}/analytics/gas?${buildParams(params)}`).then((r) => { if (!r.ok) throw new Error('API error'); return r.json(); }) as Promise<{ success: true; data: { gas: GasAnalytics } }>,
   });
