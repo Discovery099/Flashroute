@@ -35,6 +35,12 @@ export function OverviewTab({ period, chainId }: OverviewTabProps) {
 
   const { profitTrend, volumeTrend, successRateTrend, dailyBreakdown } = data.data;
 
+  if (dailyBreakdown.length === 0) {
+    return (
+      <Card title="No trade data for this period" subtitle="Analytics will appear once you have executed trades in the selected period.">{null}</Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">

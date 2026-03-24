@@ -59,12 +59,16 @@ export function GasTab({ period, chainId }: GasTabProps) {
       </Card>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Flashbots Savings" subtitle="Gas saved via Flashbots RPC">
-          <p className="text-2xl font-mono font-bold text-fx-text-secondary" title={NULL_TOOLTIP.gasSavedByFlashbotsUsd}>—</p>
-          <p className="mt-1 text-xs text-fx-text-muted">{NULL_TOOLTIP.gasSavedByFlashbotsUsd}</p>
+          <p className="text-2xl font-mono font-bold text-fx-text-secondary" title={gas.gasSavedByFlashbotsUsd !== null ? formatUsd(gas.gasSavedByFlashbotsUsd) : NULL_TOOLTIP.gasSavedByFlashbotsUsd}>
+            {gas.gasSavedByFlashbotsUsd !== null ? formatUsd(gas.gasSavedByFlashbotsUsd) : '—'}
+          </p>
+          <p className="mt-1 text-xs text-fx-text-muted">{gas.gasSavedByFlashbotsUsd !== null ? 'Gas saved via Flashbots RPC' : NULL_TOOLTIP.gasSavedByFlashbotsUsd}</p>
         </Card>
         <Card title="Optimal Execution Windows" subtitle="Most profitable hours to execute">
-          <p className="text-2xl font-mono font-bold text-fx-text-secondary" title={NULL_TOOLTIP.optimalExecutionHours}>—</p>
-          <p className="mt-1 text-xs text-fx-text-muted">{NULL_TOOLTIP.optimalExecutionHours}</p>
+          <p className="text-2xl font-mono font-bold text-fx-text-secondary" title={gas.optimalExecutionHours !== null ? gas.optimalExecutionHours.join(', ') + ' (UTC)' : NULL_TOOLTIP.optimalExecutionHours}>
+            {gas.optimalExecutionHours !== null ? gas.optimalExecutionHours.join(', ') + ' (UTC)' : '—'}
+          </p>
+          <p className="mt-1 text-xs text-fx-text-muted">{gas.optimalExecutionHours !== null ? 'Most profitable hours to execute' : NULL_TOOLTIP.optimalExecutionHours}</p>
         </Card>
       </div>
     </div>
