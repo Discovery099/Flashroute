@@ -18,7 +18,9 @@ type Tab = typeof TABS[number]['value'];
 export function AnalyticsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const tab = (searchParams.get('tab') ?? 'overview') as Tab;
+  const rawTab = searchParams.get('tab');
+  const validTabs = TABS.map((t) => t.value);
+  const tab = validTabs.includes(rawTab as Tab) ? (rawTab as Tab) : 'overview';
   const period = searchParams.get('period') ?? '7d';
   const chainId = searchParams.get('chainId') ? Number(searchParams.get('chainId')) : undefined;
 
