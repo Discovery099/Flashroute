@@ -72,15 +72,20 @@ export interface TradeSummary {
   totalTrades: number;
   successfulTrades: number;
   failedTrades: number;
-  netProfitUsd: number;
+  successRate: number;
+  totalProfitUsd: number;
   totalGasCostUsd: number;
-  topRoutes: Array<{ routePath: unknown; count: number; netProfitUsd: number }>;
-  profitByDay: Array<{ date: string; profitUsd: number; gasCostUsd: number; tradeCount: number }>;
+  netProfitUsd: number;
+  avgProfitPerTradeUsd: number;
+  maxProfitTradeUsd: number;
+  avgExecutionTimeMs: number;
+  topRoutes: Array<{ path: string; count: number; totalProfit: number }>;
+  profitByDay: Array<{ date: string; profit: number; trades: number }>;
 }
 
 export interface TradesRepository {
   create(input: CreateTradeRecordInput): Promise<TradeRecord>;
-  findById(userId: string, tradeId: string): Promise<TradeRecord | null>;
+  findById(userId: string, tradeId: string): Promise<({ hops: TradeHopRecord[] } & TradeRecord) | null>;
   listByUser(userId: string, filters: TradeListFilters): Promise<{ trades: TradeRecord[]; total: number }>;
   updateStatus(tradeId: string, status: string, details?: UpdateTradeStatusDetails): Promise<TradeRecord>;
   addHops(tradeId: string, hops: CreateTradeHopRecordInput[]): Promise<TradeHopRecord[]>;
@@ -248,9 +253,24 @@ export class PrismaTradesRepository implements TradesRepository {
   public async findById(userId: string, tradeId: string) {
     const record = await this.prisma.trade.findFirst({
       where: { id: tradeId, userId },
-      include: { chain: true, strategy: { select: { id: true, name: true } } },
+      include: {
+        chain: true,
+        strategy: { select: { id: true, name: true } },
+        hops: {
+          include: {
+            pool: true,
+            tokenIn: true,
+            tokenOut: true,
+          },
+          orderBy: { hopIndex: 'asc' },
+        },
+      },
     });
-    return record ? toTradeRecord(record) : null;
+    if (!record) return null;
+    const tradeRecord = toTradeRecord(record);
+    const rawHops = (record as any).hops;
+    const hops = Array.isArray(rawHops) ? rawHops.map(toTradeHopRecord) : [];
+    return { ...tradeRecord, hops };
   }
 
   public async listByUser(userId: string, filters: TradeListFilters) {
@@ -372,7 +392,9 @@ export class PrismaTradesRepository implements TradesRepository {
       status: string;
       netProfitUsd: unknown;
       gasCostUsd: unknown;
+      profitUsd: unknown;
       routePath: unknown;
+      executionTimeMs: number;
       createdAt: Date;
     }>;
 
@@ -381,14 +403,18 @@ export class PrismaTradesRepository implements TradesRepository {
     let failedTrades = 0;
     let netProfitUsd = 0;
     let totalGasCostUsd = 0;
+    let totalProfitUsd = 0;
+    let maxProfitTradeUsd = 0;
+    let totalExecutionTimeMs = 0;
 
-    const routeMap = new Map<string, { count: number; netProfitUsd: number }>();
-    const profitByDayMap = new Map<string, { profitUsd: number; gasCostUsd: number; tradeCount: number }>();
+    const routeMap = new Map<string, { count: number; totalProfit: number }>();
+    const profitByDayMap = new Map<string, { profit: number; trades: number }>();
 
     for (const trade of trades) {
       totalTrades += 1;
       const netProfit = decimalToNumber(trade.netProfitUsd);
       const gasCost = decimalToNumber(trade.gasCostUsd);
+      const profit = decimalToNumber(trade.profitUsd);
 
       if (trade.status === 'settled' || trade.status === 'included') {
         successfulTrades += 1;
@@ -398,29 +424,48 @@ export class PrismaTradesRepository implements TradesRepository {
 
       netProfitUsd += netProfit;
       totalGasCostUsd += gasCost;
+      totalProfitUsd += profit;
+      if (profit > maxProfitTradeUsd) maxProfitTradeUsd = profit;
+      totalExecutionTimeMs += trade.executionTimeMs;
 
-      const routeKey = JSON.stringify(trade.routePath);
-      const existing = routeMap.get(routeKey) ?? { count: 0, netProfitUsd: 0 };
-      routeMap.set(routeKey, { count: existing.count + 1, netProfitUsd: existing.netProfitUsd + netProfit });
+      const pathStr = this.formatRoutePath(trade.routePath);
+      const existing = routeMap.get(pathStr) ?? { count: 0, totalProfit: 0 };
+      routeMap.set(pathStr, { count: existing.count + 1, totalProfit: existing.totalProfit + netProfit });
 
       const dayKey = trade.createdAt.toISOString().split('T')[0]!;
-      const dayStats = profitByDayMap.get(dayKey) ?? { profitUsd: 0, gasCostUsd: 0, tradeCount: 0 };
-      profitByDayMap.set(dayKey, {
-        profitUsd: dayStats.profitUsd + netProfit,
-        gasCostUsd: dayStats.gasCostUsd + gasCost,
-        tradeCount: dayStats.tradeCount + 1,
-      });
+      const dayStats = profitByDayMap.get(dayKey) ?? { profit: 0, trades: 0 };
+      profitByDayMap.set(dayKey, { profit: dayStats.profit + netProfit, trades: dayStats.trades + 1 });
     }
 
     const topRoutes = [...routeMap.entries()]
-      .sort((a, b) => b[1].netProfitUsd - a[1].netProfitUsd)
+      .sort((a, b) => b[1].totalProfit - a[1].totalProfit)
       .slice(0, 10)
-      .map(([routePath, stats]) => ({ routePath: JSON.parse(routePath), count: stats.count, netProfitUsd: stats.netProfitUsd }));
+      .map(([path, stats]) => ({ path, count: stats.count, totalProfit: stats.totalProfit }));
 
     const profitByDay = [...profitByDayMap.entries()]
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([date, stats]) => ({ date, ...stats }));
+      .map(([date, stats]) => ({ date, profit: stats.profit, trades: stats.trades }));
 
-    return { totalTrades, successfulTrades, failedTrades, netProfitUsd, totalGasCostUsd, topRoutes, profitByDay };
+    return {
+      totalTrades,
+      successfulTrades,
+      failedTrades,
+      successRate: totalTrades > 0 ? (successfulTrades / totalTrades) * 100 : 0,
+      totalProfitUsd,
+      totalGasCostUsd,
+      netProfitUsd,
+      avgProfitPerTradeUsd: totalTrades > 0 ? netProfitUsd / totalTrades : 0,
+      maxProfitTradeUsd,
+      avgExecutionTimeMs: totalTrades > 0 ? Math.round(totalExecutionTimeMs / totalTrades) : 0,
+      topRoutes,
+      profitByDay,
+    };
+  }
+
+  private formatRoutePath(routePath: unknown): string {
+    if (!Array.isArray(routePath)) return 'Unknown';
+    const hops = routePath as Array<{ tokenIn?: string; tokenOut?: string }>;
+    const tokens = hops.flatMap((h) => [h.tokenIn, h.tokenOut]).filter(Boolean);
+    return tokens.join('→');
   }
 }

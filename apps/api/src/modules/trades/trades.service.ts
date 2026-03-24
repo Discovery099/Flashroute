@@ -53,11 +53,15 @@ export class TradesService {
   }
 
   public async getById(userId: string, tradeId: string) {
-    const trade = await this.tradesRepository.findById(userId, tradeId);
-    if (!trade) {
+    const tradeWithHops = await this.tradesRepository.findById(userId, tradeId);
+    if (!tradeWithHops) {
       throw new ApiError(404, 'NOT_FOUND', 'Trade not found');
     }
-    return { trade: this.toTradeDto(trade), hops: [] as TradeHopRecord[] };
+    const { hops: _hops, ...trade } = tradeWithHops;
+    return {
+      trade: this.toTradeDto(trade as any),
+      hops: _hops.map((h) => this.toTradeHopDto(h)),
+    };
   }
 
   public async list(userId: string, query: ListTradesQuery) {

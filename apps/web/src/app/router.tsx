@@ -11,6 +11,8 @@ import { VerifyEmailPage } from '@/features/auth/pages/VerifyEmailPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { OpportunitiesPage } from '@/features/opportunities/pages/OpportunitiesPage';
 import { StrategyCreatePage } from '@/features/strategies/pages/StrategyCreatePage';
+import { TradeDetailPage } from '@/features/trades/pages/TradeDetailPage';
+import { TradesListPage } from '@/features/trades/pages/TradesListPage';
 import { StrategyDetailPage } from '@/features/strategies/pages/StrategyDetailPage';
 import { StrategyEditPage } from '@/features/strategies/pages/StrategyEditPage';
 import { StrategyListPage } from '@/features/strategies/pages/StrategyListPage';
@@ -261,7 +263,8 @@ export const appRoutes: RouteObject[] = [
       { path: 'strategies/new', element: <StrategyCreatePage /> },
       { path: 'strategies/:id', element: <StrategyDetailPage /> },
       { path: 'strategies/:id/edit', element: <StrategyEditPage /> },
-      { path: 'trades', element: <PlaceholderPage eyebrow="Execution" title="Trades" description="Trade review routes are reserved with dense placeholder structure rather than empty stubs." /> },
+      { path: 'trades', element: <TradesListPage /> },
+      { path: 'trades/:id', element: <TradeDetailPage /> },
       { path: 'pools', element: <PlaceholderPage eyebrow="Liquidity" title="Pools" description="Pool monitoring scaffolding is mounted now so liquidity health and routing surfaces can land without shell changes." /> },
       { path: 'analytics', element: <PlaceholderPage eyebrow="Analytics" title="Analytics" description="Chart-heavy routes can opt into full-width content while preserving shared shell affordances." /> },
       { path: 'settings', element: <PlaceholderPage eyebrow="Workspace" title="Settings" description="Account, API, and environment preferences will inherit the same state and token foundation." /> },

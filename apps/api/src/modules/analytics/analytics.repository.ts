@@ -211,7 +211,7 @@ export class AnalyticsRepository {
       tradeCount: number;
       estimatedProfit: number;
       totalGasPrice: number;
-      routes: string[];
+      routeCounts: Map<string, number>;
       firstSeenAt: Date;
       lastSeenAt: Date;
     }>();
@@ -221,31 +221,39 @@ export class AnalyticsRepository {
         tradeCount: 0,
         estimatedProfit: 0,
         totalGasPrice: 0,
-        routes: [],
+        routeCounts: new Map<string, number>(),
         firstSeenAt: record.createdAt,
         lastSeenAt: record.createdAt,
       };
       const routeStr = this.serializeRoutePath(record.routePath);
+      const newRouteCounts = new Map(existing.routeCounts);
+      newRouteCounts.set(routeStr, (newRouteCounts.get(routeStr) ?? 0) + 1);
       competitorMap.set(record.botAddress, {
         tradeCount: existing.tradeCount + 1,
         estimatedProfit: existing.estimatedProfit + decimalToNumber(record.estimatedProfitUsd),
         totalGasPrice: existing.totalGasPrice + decimalToNumber(record.gasPriceGwei),
-        routes: existing.routes.includes(routeStr) ? existing.routes : [...existing.routes, routeStr],
+        routeCounts: newRouteCounts,
         firstSeenAt: record.createdAt < existing.firstSeenAt ? record.createdAt : existing.firstSeenAt,
         lastSeenAt: record.createdAt > existing.lastSeenAt ? record.createdAt : existing.lastSeenAt,
       });
     }
 
     const competitors: CompetitorData[] = [...competitorMap.entries()]
-      .map(([botAddress, stats]) => ({
-        botAddress,
-        tradeCount: stats.tradeCount,
-        estimatedProfitUsd: stats.estimatedProfit,
-        avgGasPriceGwei: stats.tradeCount > 0 ? stats.totalGasPrice / stats.tradeCount : 0,
-        mostUsedRoutes: stats.routes.slice(0, 3),
-        firstSeenAt: stats.firstSeenAt.toISOString(),
-        lastSeenAt: stats.lastSeenAt.toISOString(),
-      }))
+      .map(([botAddress, stats]) => {
+        const mostUsedRoutes = [...stats.routeCounts.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([route]) => route);
+        return {
+          botAddress,
+          tradeCount: stats.tradeCount,
+          estimatedProfitUsd: stats.estimatedProfit,
+          avgGasPriceGwei: stats.tradeCount > 0 ? stats.totalGasPrice / stats.tradeCount : 0,
+          mostUsedRoutes,
+          firstSeenAt: stats.firstSeenAt.toISOString(),
+          lastSeenAt: stats.lastSeenAt.toISOString(),
+        };
+      })
       .sort((a, b) => b.tradeCount - a.tradeCount)
       .slice(0, query.limit);
 
@@ -274,6 +282,9 @@ export class AnalyticsRepository {
 
     const hourlyMap = new Map<string, { totalGasPrice: number; count: number }>();
 
+    const last24h = new Date();
+    last24h.setHours(last24h.getHours() - 24);
+
     for (const trade of trades) {
       gasSpentTotalUsd += decimalToNumber(trade.gasCostUsd);
       if (trade.gasCostUsd !== null && trade.gasCostUsd !== undefined) {
@@ -292,6 +303,8 @@ export class AnalyticsRepository {
     }
 
     const gasTrend = [...hourlyMap.entries()]
+      .filter(([hour]) => new Date(hour) >= last24h)
+      .sort((a, b) => a[0].localeCompare(b[0]))
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([hour, stats]) => ({
         hour,
