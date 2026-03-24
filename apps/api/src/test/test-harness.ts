@@ -18,6 +18,8 @@ import {
   type UserRecord,
 } from '../modules/auth/auth.repository';
 import { PrismaStrategiesRepository } from '../modules/strategies/strategies.repository';
+import { PrismaTradesRepository } from '../modules/trades/trades.repository';
+import { TradesService } from '../modules/trades/trades.service';
 import type { OpportunityView } from '@flashroute/shared/contracts/opportunity';
 
 type SortDirection = 'asc' | 'desc';
@@ -168,12 +170,14 @@ class FakePrismaClient implements PrismaClientLike {
   public readonly refreshTokens: any[] = [];
   public readonly emailVerificationTokens: any[] = [];
   public readonly passwordResetTokens: any[] = [];
- public readonly backupCodes: any[] = [];
+  public readonly backupCodes: any[] = [];
   public readonly apiKeys: any[] = [];
   public readonly passwordHistoryRows: any[] = [];
   public readonly subscriptions: any[] = [];
   public readonly auditLogs: any[] = [];
   public readonly strategies: any[] = [];
+  public readonly trades: any[] = [];
+  public readonly tradeHops: any[] = [];
   public readonly supportedChains: any[] = [
     { id: 1, chainId: 1, name: 'Ethereum', isActive: true, executorContractAddress: '0xexecutor-eth' },
     { id: 2, chainId: 42161, name: 'Arbitrum', isActive: true, executorContractAddress: '0xexecutor-arb' },
@@ -427,6 +431,147 @@ class FakePrismaClient implements PrismaClientLike {
       return deleted;
     },
   };
+
+  public readonly trade = {
+    create: async ({ data }: { data: any }) => {
+      const now = new Date();
+      const record = {
+        id: randomUUID(),
+        status: data.status ?? 'detected',
+        txHash: data.txHash ?? null,
+        blockNumber: data.blockNumber ?? null,
+        routePath: data.routePath ?? [],
+        routeHops: data.routeHops ?? 0,
+        flashLoanProvider: data.flashLoanProvider ?? 'auto',
+        flashLoanToken: data.flashLoanToken ?? '0x0000000000000000000000000000000000000000',
+        flashLoanAmount: data.flashLoanAmount ?? 0,
+        flashLoanFee: data.flashLoanFee ?? 0,
+        profitRaw: data.profitRaw ?? null,
+        profitUsd: data.profitUsd ?? null,
+        gasUsed: data.gasUsed ?? null,
+        gasPriceGwei: data.gasPriceGwei ?? null,
+        gasCostUsd: data.gasCostUsd ?? null,
+        netProfitUsd: data.netProfitUsd ?? null,
+        simulatedProfitUsd: data.simulatedProfitUsd ?? 0,
+        slippagePct: data.slippagePct ?? null,
+        demandPredictionUsed: data.demandPredictionUsed ?? false,
+        competingTxsInBlock: data.competingTxsInBlock ?? null,
+        errorMessage: data.errorMessage ?? null,
+        executionTimeMs: data.executionTimeMs ?? 0,
+        submittedAt: data.submittedAt ?? null,
+        confirmedAt: data.confirmedAt ?? null,
+        createdAt: now,
+        updatedAt: now,
+        ...data,
+      };
+      this.trades.push(record);
+      return {
+        ...record,
+        chain: this.supportedChains.find((chain) => chain.chainId === record.chainId) ?? null,
+        strategy: { id: record.strategyId, name: 'Test Strategy' },
+      };
+    },
+    findFirst: async ({ where }: { where: any }) => {
+      const record = this.trades.find((candidate) => {
+        return Object.entries(where).every(([key, value]) => {
+          if (where.include?.chain && key === 'id') {
+            return candidate[key] === value;
+          }
+          if (typeof value === 'object' && value !== null && 'gte' in (value as object)) {
+            return candidate[key] >= (value as { gte: number }).gte;
+          }
+          if (typeof value === 'object' && value !== null && 'lte' in (value as object)) {
+            return candidate[key] <= (value as { lte: number }).lte;
+          }
+          return candidate[key] === value;
+        });
+      });
+      if (!record) {
+        return null;
+      }
+      return {
+        ...record,
+        chain: this.supportedChains.find((chain) => chain.chainId === record.chainId) ?? null,
+        strategy: { id: record.strategyId, name: 'Test Strategy' },
+      };
+    },
+    findMany: async ({ where, skip = 0, take, orderBy }: { where: any; skip?: number; take?: number; orderBy?: any }) => {
+      let filtered = this.trades.filter((candidate) => {
+        return Object.entries(where).every(([key, value]) => {
+          if (typeof value === 'object' && value !== null && 'gte' in (value as object)) {
+            return candidate[key] >= (value as { gte: number }).gte;
+          }
+          if (typeof value === 'object' && value !== null && 'lte' in (value as object)) {
+            return candidate[key] <= (value as { lte: number }).lte;
+          }
+          if (typeof value === 'object' && value !== null && 'in' in (value as object)) {
+            return (value as { in: unknown[] }).in.includes(candidate[key]);
+          }
+          return candidate[key] === value;
+        });
+      });
+
+      if (orderBy) {
+        const sortKey = Object.keys(orderBy)[0];
+        const sortDir = orderBy[sortKey];
+        filtered = [...filtered].sort((a, b) => {
+          if (sortDir === 'asc') {
+            return a[sortKey] > b[sortKey] ? 1 : -1;
+          }
+          return a[sortKey] < b[sortKey] ? 1 : -1;
+        });
+      }
+
+      const sliced = take === undefined ? filtered.slice(skip) : filtered.slice(skip, skip + take);
+      return sliced.map((record) => ({
+        ...record,
+        chain: this.supportedChains.find((chain) => chain.chainId === record.chainId) ?? null,
+        strategy: { id: record.strategyId, name: 'Test Strategy' },
+      }));
+    },
+    update: async ({ where, data }: { where: { id: string }; data: any }) => {
+      const record = this.trades.find((candidate) => candidate.id === where.id)!;
+      Object.assign(record, data, { updatedAt: new Date() });
+      return {
+        ...record,
+        chain: this.supportedChains.find((chain) => chain.chainId === record.chainId) ?? null,
+        strategy: { id: record.strategyId, name: 'Test Strategy' },
+      };
+    },
+    delete: async ({ where }: { where: { id: string } }) => {
+      const index = this.trades.findIndex((candidate) => candidate.id === where.id);
+      const [deleted] = this.trades.splice(index, 1);
+      return deleted;
+    },
+  };
+
+  public readonly tradeHop = {
+    create: async ({ data }: { data: any }) => {
+      const now = new Date();
+      const record = {
+        id: randomUUID(),
+        createdAt: now,
+        ...data,
+      };
+      this.tradeHops.push(record);
+      return {
+        ...record,
+        pool: { id: record.poolId, address: '0xpool', dex: 'uniswap_v3' },
+        tokenIn: { id: record.tokenInId, symbol: 'WETH', decimals: 18 },
+        tokenOut: { id: record.tokenOutId, symbol: 'USDC', decimals: 6 },
+      };
+    },
+    findMany: async ({ where }: { where: { tradeId: string } }) => {
+      return this.tradeHops
+        .filter((hop) => hop.tradeId === where.tradeId)
+        .map((hop) => ({
+          ...hop,
+          pool: { id: hop.poolId, address: '0xpool', dex: 'uniswap_v3' },
+          tokenIn: { id: hop.tokenInId, symbol: 'WETH', decimals: 18 },
+          tokenOut: { id: hop.tokenOutId, symbol: 'USDC', decimals: 6 },
+        }));
+    },
+  };
 }
 
 export const createTestApiHarness = async () => {
@@ -440,6 +585,8 @@ export const createTestApiHarness = async () => {
 
   const authRepository = new PrismaAuthRepository(prisma);
   const strategiesRepository = new PrismaStrategiesRepository(prisma as never);
+  const tradesRepository = new PrismaTradesRepository(prisma as never);
+  const tradesService = new TradesService(tradesRepository);
   const ephemeralAuthStore = new RedisEphemeralAuthStore(redis, 'fr:');
   const emailQueue = new RedisEmailJobQueue(redis, 'fr:queue:email');
   const rateLimitStore = new RedisRateLimitStore(redis, 'fr:');
@@ -447,6 +594,7 @@ export const createTestApiHarness = async () => {
   const app = buildApiApp({
     authRepository,
     strategiesRepository,
+    tradesRepository,
     ephemeralAuthStore,
     emailQueue,
     rateLimitStore,
@@ -462,6 +610,7 @@ export const createTestApiHarness = async () => {
       apiKeyPepper: 'api-pepper',
     },
     opportunitiesService,
+    tradesService,
   });
 
   await app.ready();

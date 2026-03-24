@@ -23,7 +23,7 @@ CREATE TYPE "DexVersion" AS ENUM ('v2', 'v3', 'stable', 'weighted');
 CREATE TYPE "FlashLoanProvider" AS ENUM ('auto', 'aave', 'balancer', 'dydx');
 
 -- CreateEnum
-CREATE TYPE "TradeStatus" AS ENUM ('pending', 'submitted', 'included', 'confirmed', 'reverted', 'failed');
+CREATE TYPE "TradeStatus" AS ENUM ('detected', 'simulated', 'submitted_private', 'submitted_public', 'included', 'settled', 'reverted', 'failed');
 
 -- CreateEnum
 CREATE TYPE "AlertType" AS ENUM ('opportunity_found', 'trade_executed', 'trade_failed', 'profit_threshold', 'gas_spike', 'system_error');
@@ -210,7 +210,7 @@ CREATE TABLE "trades" (
     "strategy_id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
     "chain_id" INTEGER NOT NULL,
-    "status" "TradeStatus" NOT NULL DEFAULT 'pending',
+    "status" "TradeStatus" NOT NULL DEFAULT 'detected',
     "tx_hash" VARCHAR(66),
     "block_number" BIGINT,
     "route_path" JSONB NOT NULL,

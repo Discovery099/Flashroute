@@ -7,7 +7,7 @@ export const buildTradeFactoryInput = (
   strategyId: required.strategyId,
   userId: required.userId,
   chainId: required.chainId,
-  status: TradeStatus.PENDING,
+  status: TradeStatus.DETECTED,
   routePath: [
     {
       pool: '0x1111111111111111111111111111111111111111',

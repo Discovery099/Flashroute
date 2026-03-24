@@ -10,6 +10,8 @@ export const REDIS_CHANNELS = {
   systemAlert: 'fr:system:alert',
   strategyActivated: 'fr:strategy:activated',
   strategyDeactivated: 'fr:strategy:deactivated',
+  tradesQueue: 'fr:trades:queue',
+  tradesLive: 'fr:trades:live',
 } as const;
 
 export const SERVICE_NAMES = [

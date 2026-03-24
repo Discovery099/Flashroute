@@ -24,6 +24,9 @@ import {
 import { registerStrategiesRoutes } from './modules/strategies/strategies.routes';
 import { PrismaStrategiesRepository, type StrategiesRepository } from './modules/strategies/strategies.repository';
 import { StrategiesService } from './modules/strategies/strategies.service';
+import { registerTradesRoutes } from './modules/trades/trades.routes';
+import { PrismaTradesRepository, type TradesRepository } from './modules/trades/trades.repository';
+import { TradesService } from './modules/trades/trades.service';
 import { registerUserRoutes } from './modules/users/user.routes';
 import { UserService } from './modules/users/user.service';
 import { registerAuthPlugin } from './plugins/auth';
@@ -54,6 +57,8 @@ export interface BuildApiAppOptions {
   opportunitiesService?: OpportunitiesService;
   strategiesRepository?: StrategiesRepository;
   strategyEventPublisher?: { publish(channel: string, payload: string): Promise<number> };
+  tradesRepository?: TradesRepository;
+  tradesService?: TradesService;
   liveGateway?: LiveGateway;
 }
 
@@ -94,6 +99,8 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   const apiKeysService = new ApiKeysService(options.authRepository, options.auth);
   const strategiesRepository = options.strategiesRepository ?? new PrismaStrategiesRepository(options.authRepository as never);
   const strategiesService = new StrategiesService(options.authRepository, strategiesRepository, options.strategyEventPublisher);
+  const tradesRepository = options.tradesRepository ?? new PrismaTradesRepository(options.authRepository as never);
+  const tradesService = options.tradesService ?? new TradesService(tradesRepository);
   const liveGateway =
     options.liveGateway ??
     new LiveGateway({
@@ -115,6 +122,7 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   app.decorate('apiKeysService', apiKeysService);
   app.decorate('opportunitiesService', opportunitiesService);
   app.decorate('strategiesService', strategiesService);
+  app.decorate('tradesService', tradesService);
   app.decorate('liveGateway', liveGateway);
 
   registerAuthPlugin(app, { authService, apiKeysService });
@@ -123,6 +131,7 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   registerApiKeyRoutes(app, apiKeysService);
   registerOpportunitiesRoutes(app, opportunitiesService);
   registerStrategiesRoutes(app, strategiesService);
+  registerTradesRoutes(app, tradesService);
   registerDashboardRoutes(app, opportunitiesService);
   app.register(async (instance) => {
     await registerLiveRoutes(instance, liveGateway, options.livePubSubSubscriber);

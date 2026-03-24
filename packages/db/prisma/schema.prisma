@@ -52,12 +52,14 @@ enum FlashLoanProvider {
 }
 
 enum TradeStatus {
-  PENDING   @map("pending")
-  SUBMITTED @map("submitted")
-  INCLUDED  @map("included")
-  CONFIRMED @map("confirmed")
-  REVERTED  @map("reverted")
-  FAILED    @map("failed")
+  DETECTED         @map("detected")
+  SIMULATED        @map("simulated")
+  SUBMITTED_PRIVATE @map("submitted_private")
+  SUBMITTED_PUBLIC  @map("submitted_public")
+  INCLUDED         @map("included")
+  SETTLED          @map("settled")
+  REVERTED         @map("reverted")
+  FAILED           @map("failed")
 }
 
 enum AlertType {
@@ -315,7 +317,7 @@ model Trade {
   strategyId           String            @map("strategy_id") @db.Uuid
   userId               String            @map("user_id") @db.Uuid
   chainId              Int               @map("chain_id")
-  status               TradeStatus       @default(PENDING)
+  status               TradeStatus       @default(DETECTED)
   txHash               String?           @unique @map("tx_hash") @db.VarChar(66)
   blockNumber          BigInt?           @map("block_number")
   routePath            Json              @map("route_path")
