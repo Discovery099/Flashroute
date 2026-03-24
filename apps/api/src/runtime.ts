@@ -17,6 +17,7 @@ export interface ApiRuntimeOptions {
   redisKeyPrefix: string;
   redisQueuePrefix: string;
   auth: AuthServiceOptions;
+  ethRpcUrl?: string;
 }
 
 export const createApiRuntime = (options: ApiRuntimeOptions) => {
@@ -40,5 +41,6 @@ export const createApiRuntime = (options: ApiRuntimeOptions) => {
     strategyEventPublisher: redisClients.publisher as never,
     livePubSubSubscriber: redisClients.subscriber as never,
     auth: options.auth,
+    rpcUrl: options.ethRpcUrl ?? process.env.ETH_RPC_URL ?? 'https://eth.llamarpc.com',
   });
 };

@@ -30,6 +30,9 @@ import { TradesService } from './modules/trades/trades.service';
 import { registerUserRoutes } from './modules/users/user.routes';
 import { UserService } from './modules/users/user.service';
 import { registerAuthPlugin } from './plugins/auth';
+import { AnalyticsRepository } from './modules/analytics/analytics.repository';
+import { AnalyticsService } from './modules/analytics/analytics.service';
+import { registerAnalyticsRoutes } from './modules/analytics/analytics.routes';
 
 export class ApiError extends Error {
   public readonly statusCode: number;
@@ -60,6 +63,9 @@ export interface BuildApiAppOptions {
   tradesRepository?: TradesRepository;
   tradesService?: TradesService;
   liveGateway?: LiveGateway;
+  analyticsRepository?: AnalyticsRepository;
+  analyticsService?: AnalyticsService;
+  rpcUrl?: string;
 }
 
 export const success = (reply: FastifyReply, statusCode: number, data: unknown) =>
@@ -101,6 +107,8 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   const strategiesService = new StrategiesService(options.authRepository, strategiesRepository, options.strategyEventPublisher);
   const tradesRepository = options.tradesRepository ?? new PrismaTradesRepository(options.authRepository as never);
   const tradesService = options.tradesService ?? new TradesService(tradesRepository);
+  const analyticsRepository = options.analyticsRepository ?? new AnalyticsRepository(options.authRepository as never);
+  const analyticsService = options.analyticsService ?? new AnalyticsService(analyticsRepository, options.rpcUrl ?? 'https://eth.llamarpc.com');
   const liveGateway =
     options.liveGateway ??
     new LiveGateway({
@@ -123,6 +131,7 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   app.decorate('opportunitiesService', opportunitiesService);
   app.decorate('strategiesService', strategiesService);
   app.decorate('tradesService', tradesService);
+  app.decorate('analyticsService', analyticsService);
   app.decorate('liveGateway', liveGateway);
 
   registerAuthPlugin(app, { authService, apiKeysService });
@@ -133,6 +142,7 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   registerStrategiesRoutes(app, strategiesService);
   registerTradesRoutes(app, tradesService);
   registerDashboardRoutes(app, opportunitiesService);
+  registerAnalyticsRoutes(app, analyticsService);
   app.register(async (instance) => {
     await registerLiveRoutes(instance, liveGateway, options.livePubSubSubscriber);
   });
