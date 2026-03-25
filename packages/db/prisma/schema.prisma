@@ -189,6 +189,7 @@ model Subscription {
   currentPeriodEnd     DateTime           @map("current_period_end") @db.Timestamp(6)
   cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
   trialEnd             DateTime?          @map("trial_end") @db.Timestamp(6)
+  graceUntil           DateTime?          @map("grace_until") @db.Timestamp(6)
   createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
   user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
