@@ -13,9 +13,9 @@ import type { StrategiesRepository, StrategyListFilters, StrategyRecord } from '
 interface StrategyEventPublisher { publish(channel: string, payload: string): Promise<number>; }
 
 const maxStrategiesByRole = {
-  monitor: 2,
-  trader: 10,
-  executor: 25,
+  monitor: 0,
+  trader: 0,
+  executor: 10,
   institutional: Number.POSITIVE_INFINITY,
   admin: Number.POSITIVE_INFINITY,
 } as const;
@@ -161,6 +161,9 @@ export class StrategiesService {
     const user = await this.authRepository.findUserById(userId);
     if (!user || user.deletedAt) {
       throw new ApiError(404, 'NOT_FOUND', 'User not found');
+    }
+    if (maxStrategiesByRole[user.role] === 0) {
+      throw new ApiError(403, 'TIER_LIMIT', 'Strategy management requires executor tier or higher');
     }
     if (!user.subscription || !activeStatuses.has(user.subscription.status)) {
       throw new ApiError(403, 'TIER_LIMIT', 'An active subscription is required to manage strategies');

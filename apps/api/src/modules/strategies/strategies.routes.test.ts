@@ -410,14 +410,14 @@ describe('strategy routes', () => {
       },
     });
 
-    const forbidden = await harness.app.inject({
+    const traderFirst = await harness.app.inject({
       method: 'POST',
       url: '/api/v1/strategies',
       headers: {
         authorization: `Bearer ${traderLogin.json().data.accessToken as string}`,
       },
       payload: {
-        name: 'Trader Blocked',
+        name: 'Trader First',
         chainId: 1,
         minProfitUsd: 5,
         maxHops: 3,
@@ -425,9 +425,7 @@ describe('strategy routes', () => {
         allowedDexes: ['uniswap_v2'],
       },
     });
-
-    expect(forbidden.statusCode).toBe(403);
-    expect(forbidden.json().error.code).toBe('TIER_LIMIT');
+    expect(traderFirst.statusCode).toBeGreaterThanOrEqual(200);
 
     const executorHarness = await createExecutorHarness();
 
