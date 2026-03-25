@@ -1,6 +1,6 @@
 import { Button, Card, LiveIndicator, StatCard } from '@flashroute/ui';
 import { Shield, Activity } from 'lucide-react';
-import { useEffect, type ReactNode } from 'react';
+import React, { useEffect, type ReactNode } from 'react';
 import { Link, Navigate, Outlet, createBrowserRouter, useLocation, type RouteObject } from 'react-router-dom';
 
 import { LoginPage } from '@/features/auth/pages/LoginPage';
@@ -269,7 +269,7 @@ export const appRoutes: RouteObject[] = [
       { path: 'pools', element: <PlaceholderPage eyebrow="Liquidity" title="Pools" description="Pool monitoring scaffolding is mounted now so liquidity health and routing surfaces can land without shell changes." /> },
       { path: 'analytics', element: <AnalyticsPage /> },
       { path: 'settings', element: <PlaceholderPage eyebrow="Workspace" title="Settings" description="Account, API, and environment preferences will inherit the same state and token foundation." /> },
-      { path: 'billing', element: <PlaceholderPage eyebrow="Workspace" title="Billing" description="Billing and entitlement routes are scaffolded so plan-aware UI can land without route churn." /> },
+      { path: 'billing', element: React.createElement(React.lazy(() => import('../features/billing/pages/BillingPage'))) },
       { path: 'api-keys', element: <PlaceholderPage eyebrow="Workspace" title="API keys" description="API key management gets a reserved product route now for later auth-aware provisioning and audit work." /> },
       {
         path: 'admin',
