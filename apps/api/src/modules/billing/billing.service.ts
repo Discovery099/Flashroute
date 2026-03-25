@@ -170,7 +170,7 @@ export class BillingService {
   }
 
   private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-    const userId = (session as any).subscription_data?.metadata?.['userId'] as string;
+    const userId = session.client_reference_id;
     if (!userId) return;
     const stripeSub = await this.stripe.subscriptions.retrieve(session.subscription as string);
     await this.upsertSubscriptionFromStripe(stripeSub, userId);
@@ -179,7 +179,7 @@ export class BillingService {
   private async handleSubscriptionUpdated(stripeSub: Stripe.Subscription) {
     const existing = await this.repository.findSubscriptionByStripeSubscriptionId(stripeSub.id);
     if (existing) {
-      const incomingEnd = new Date((stripeSub as any).current_period_end * 1000);
+      const incomingEnd = new Date(stripeSub.items.data[0].current_period_end * 1000);
       if (incomingEnd <= existing.currentPeriodEnd) {
         return;
       }
@@ -245,8 +245,8 @@ export class BillingService {
   private async upsertSubscriptionFromStripe(stripeSub: Stripe.Subscription, userId: string) {
     const priceId = stripeSub.items.data[0]?.price.id ?? '';
     const plan = PLAN_TO_ROLE[priceId] ?? 'monitor';
-    const periodStart = new Date((stripeSub as any).current_period_start * 1000);
-    const periodEnd = new Date((stripeSub as any).current_period_end * 1000);
+    const periodStart = new Date(stripeSub.items.data[0].current_period_start * 1000);
+    const periodEnd = new Date(stripeSub.items.data[0].current_period_end * 1000);
     const subscription = await this.repository.upsertSubscription({
       userId,
       stripeSubscriptionId: stripeSub.id,
