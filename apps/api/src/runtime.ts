@@ -18,6 +18,9 @@ export interface ApiRuntimeOptions {
   redisQueuePrefix: string;
   auth: AuthServiceOptions;
   ethRpcUrl?: string;
+  stripeSecretKey?: string;
+  stripeWebhookSecret?: string;
+  frontendUrl?: string;
 }
 
 export const createApiRuntime = (options: ApiRuntimeOptions) => {
@@ -42,5 +45,16 @@ export const createApiRuntime = (options: ApiRuntimeOptions) => {
     livePubSubSubscriber: redisClients.subscriber as never,
     auth: options.auth,
     rpcUrl: options.ethRpcUrl ?? process.env.ETH_RPC_URL ?? 'https://eth.llamarpc.com',
+    stripeSecretKey: options.stripeSecretKey ?? process.env.STRIPE_SECRET_KEY ?? '',
+    stripeWebhookSecret: options.stripeWebhookSecret ?? process.env.STRIPE_WEBHOOK_SECRET ?? '',
+    stripePriceIds: {
+      trader_monthly: process.env.STRIPE_PRICE_TRADER_MONTHLY ?? '',
+      trader_annual: process.env.STRIPE_PRICE_TRADER_ANNUAL ?? '',
+      executor_monthly: process.env.STRIPE_PRICE_EXECUTOR_MONTHLY ?? '',
+      executor_annual: process.env.STRIPE_PRICE_EXECUTOR_ANNUAL ?? '',
+      institutional_monthly: process.env.STRIPE_PRICE_INSTITUTIONAL_MONTHLY ?? '',
+      institutional_annual: process.env.STRIPE_PRICE_INSTITUTIONAL_ANNUAL ?? '',
+    },
+    frontendUrl: options.frontendUrl ?? process.env.FRONTEND_URL ?? 'http://localhost:5173',
   });
 };

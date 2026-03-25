@@ -12,6 +12,10 @@ import {
   type EphemeralAuthStore,
   type RateLimitStore,
 } from './modules/auth/auth.repository';
+import { BillingService } from './modules/billing/billing.service';
+import { PrismaBillingRepository } from './modules/billing/billing.repository';
+import { WebhookIdempotencyGuard, type PrismaWebhookClient } from './modules/billing/webhook-idempotency';
+import { registerBillingRoutes } from './modules/billing/billing.routes';
 import { LiveGateway } from './modules/live/live.gateway';
 import { registerLiveRoutes, type LivePubSubSubscriber } from './modules/live/live.routes';
 import { registerOpportunitiesRoutes } from './modules/opportunities/opportunities.routes';
@@ -33,6 +37,13 @@ import { registerAuthPlugin } from './plugins/auth';
 import { AnalyticsRepository } from './modules/analytics/analytics.repository';
 import { AnalyticsService } from './modules/analytics/analytics.service';
 import { registerAnalyticsRoutes } from './modules/analytics/analytics.routes';
+import type { WebhookIdempotencyGuard as WebhookIdempotencyGuardType } from './modules/billing/webhook-idempotency';
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    billingIdempotencyGuard: WebhookIdempotencyGuardType;
+  }
+}
 
 export class ApiError extends Error {
   public readonly statusCode: number;
@@ -66,6 +77,10 @@ export interface BuildApiAppOptions {
   analyticsRepository?: AnalyticsRepository;
   analyticsService?: AnalyticsService;
   rpcUrl?: string;
+  stripeSecretKey?: string;
+  stripeWebhookSecret?: string;
+  stripePriceIds?: Record<string, string>;
+  frontendUrl?: string;
 }
 
 export const success = (reply: FastifyReply, statusCode: number, data: unknown) =>
@@ -109,6 +124,15 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   const tradesService = options.tradesService ?? new TradesService(tradesRepository);
   const analyticsRepository = options.analyticsRepository ?? new AnalyticsRepository(options.authRepository as never);
   const analyticsService = options.analyticsService ?? new AnalyticsService(analyticsRepository, options.rpcUrl ?? 'https://eth.llamarpc.com');
+  const billingRepository = new PrismaBillingRepository(options.authRepository as never);
+  const billingIdempotencyGuard = new WebhookIdempotencyGuard(options.authRepository as unknown as PrismaWebhookClient);
+  const billingService = new BillingService(
+    billingRepository,
+    options.stripeSecretKey ?? '',
+    options.stripeWebhookSecret ?? '',
+    options.stripePriceIds ?? {},
+    options.frontendUrl ?? 'http://localhost:5173',
+  );
   const liveGateway =
     options.liveGateway ??
     new LiveGateway({
@@ -133,6 +157,7 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   app.decorate('tradesService', tradesService);
   app.decorate('analyticsService', analyticsService);
   app.decorate('liveGateway', liveGateway);
+  app.decorate('billingIdempotencyGuard', billingIdempotencyGuard);
 
   registerAuthPlugin(app, { authService, apiKeysService });
   registerAuthRoutes(app, authService);
@@ -143,6 +168,7 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   registerTradesRoutes(app, tradesService);
   registerDashboardRoutes(app, opportunitiesService);
   registerAnalyticsRoutes(app, analyticsService);
+  registerBillingRoutes(app, billingService, app.billingIdempotencyGuard);
   app.register(async (instance) => {
     await registerLiveRoutes(instance, liveGateway, options.livePubSubSubscriber);
   });
