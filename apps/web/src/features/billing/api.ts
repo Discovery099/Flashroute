@@ -1,5 +1,28 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { SubscriptionDTO } from '../../../../api/src/modules/billing/billing.service';
+
+interface Entitlements {
+  tier: 'monitor' | 'trader' | 'executor' | 'institutional';
+  maxStrategies: number;
+  canCreateStrategies: boolean;
+  canActivateExecution: boolean;
+  apiAccessLevel: 'none' | 'read' | 'execute';
+  includesDemandPrediction: boolean;
+  includesMultiChain: boolean;
+  source: 'free' | 'stripe' | 'grace_period';
+}
+
+export interface SubscriptionDTO {
+  id: string;
+  plan: string;
+  status: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  isInGracePeriod: boolean;
+  graceEndsAt: string | null;
+  trialEnd: string | null;
+  entitlements: Entitlements;
+}
 
 export const useSubscription = () =>
   useQuery<SubscriptionDTO | null>({

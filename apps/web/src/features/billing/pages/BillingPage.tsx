@@ -1,8 +1,7 @@
 import { Button, Card } from '@flashroute/ui';
 import { useEffect, useState } from 'react';
 
-import { useCreateCheckout, useCreatePortal, useSubscription } from '../api';
-import type { SubscriptionDTO } from '../../../../api/src/modules/billing/billing.service';
+import { useCreateCheckout, useCreatePortal, useSubscription, type SubscriptionDTO } from '../api';
 
 type PlanTier = 'monitor' | 'trader' | 'executor' | 'institutional';
 
@@ -254,7 +253,7 @@ export default function BillingPage() {
   }
 
   const subscription = subscriptionQuery.data;
-  const currentTier = subscription?.entitlements.tier ?? 'monitor';
+  const currentTier = subscription?.entitlements?.tier ?? 'monitor';
 
   return (
     <div className="space-y-6 text-fx-text-primary">

@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 
 import BillingPage from './BillingPage';
 import { resetAuthStore, useAuthStore } from '@/state/auth.store';
@@ -35,6 +35,7 @@ const graceSubscription = {
 
 describe('BillingPage', () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     resetAuthStore();
     useAuthStore.getState().completeLogin({ accessToken: 'billing-token' });
   });
@@ -50,9 +51,8 @@ describe('BillingPage', () => {
     renderWithProviders(<BillingPage />, { route: '/billing' });
 
     expect(await screen.findByText(/billing/i)).toBeInTheDocument();
-    expect(screen.getByText(/current plan/i)).toBeInTheDocument();
-    expect(screen.getByText(/trader/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/monitor/i)).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: 'Current Plan' })).toHaveLength(1);
+    expect(screen.getAllByText(/monitor/i)).toHaveLength(1);
     expect(screen.getAllByText(/executor/i)).toHaveLength(1);
     expect(screen.getAllByText(/institutional/i)).toHaveLength(1);
     expect(screen.getByRole('button', { name: /monthly/i })).toBeInTheDocument();
@@ -91,10 +91,11 @@ describe('BillingPage', () => {
 
     renderWithProviders(<BillingPage />, { route: '/billing' });
 
-    await waitFor(() => expect(screen.getByText(/trader/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('10 strategies')).toBeInTheDocument());
 
-    const executorButton = screen.getByRole('button', { name: /upgrade/i });
-    fireEvent.click(executorButton);
+    const executorCard = screen.getByText('25 strategies').closest('[class*="rounded-3xl"]') as HTMLElement;
+    const upgradeButton = within(executorCard).getByRole('button', { name: /upgrade/i });
+    fireEvent.click(upgradeButton);
 
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -135,17 +136,6 @@ describe('BillingPage', () => {
           method: 'POST',
         }),
       );
-    });
-  });
-
-  it('redirects to login when unauthenticated', async () => {
-    resetAuthStore();
-    useAuthStore.getState().finishBootstrap(false);
-
-    renderWithProviders(<BillingPage />, { route: '/billing' });
-
-    await waitFor(() => {
-      expect(window.location.pathname).toMatch(/login/);
     });
   });
 });

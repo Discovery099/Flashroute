@@ -41,7 +41,7 @@ import type { WebhookIdempotencyGuard as WebhookIdempotencyGuardType } from './m
 
 declare module 'fastify' {
   interface FastifyInstance {
-    billingIdempotencyGuard: WebhookIdempotencyGuardType;
+    billingIdempotencyGuard: WebhookIdempotencyGuardType | null;
   }
 }
 
@@ -124,15 +124,20 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   const tradesService = options.tradesService ?? new TradesService(tradesRepository);
   const analyticsRepository = options.analyticsRepository ?? new AnalyticsRepository(options.authRepository as never);
   const analyticsService = options.analyticsService ?? new AnalyticsService(analyticsRepository, options.rpcUrl ?? 'https://eth.llamarpc.com');
-  const billingRepository = new PrismaBillingRepository(options.authRepository as never);
-  const billingIdempotencyGuard = new WebhookIdempotencyGuard(options.authRepository as unknown as PrismaWebhookClient);
-  const billingService = new BillingService(
-    billingRepository,
-    options.stripeSecretKey ?? '',
-    options.stripeWebhookSecret ?? '',
-    options.stripePriceIds ?? {},
-    options.frontendUrl ?? 'http://localhost:5173',
-  );
+  const hasStripe = Boolean(options.stripeSecretKey);
+  const billingRepository = hasStripe ? new PrismaBillingRepository(options.authRepository as never) : null;
+  const billingIdempotencyGuard = hasStripe
+    ? new WebhookIdempotencyGuard(options.authRepository as unknown as PrismaWebhookClient)
+    : null;
+  const billingService = hasStripe && billingRepository
+    ? new BillingService(
+        billingRepository,
+        options.stripeSecretKey!,
+        options.stripeWebhookSecret ?? '',
+        options.stripePriceIds ?? {},
+        options.frontendUrl ?? 'http://localhost:5173',
+      )
+    : null;
   const liveGateway =
     options.liveGateway ??
     new LiveGateway({
@@ -157,7 +162,12 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   app.decorate('tradesService', tradesService);
   app.decorate('analyticsService', analyticsService);
   app.decorate('liveGateway', liveGateway);
-  app.decorate('billingIdempotencyGuard', billingIdempotencyGuard);
+  if (billingIdempotencyGuard) {
+    app.decorate('billingIdempotencyGuard', billingIdempotencyGuard);
+  }
+  if (billingService && billingIdempotencyGuard) {
+    registerBillingRoutes(app, billingService, billingIdempotencyGuard);
+  }
 
   registerAuthPlugin(app, { authService, apiKeysService });
   registerAuthRoutes(app, authService);
@@ -168,7 +178,6 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   registerTradesRoutes(app, tradesService);
   registerDashboardRoutes(app, opportunitiesService);
   registerAnalyticsRoutes(app, analyticsService);
-  registerBillingRoutes(app, billingService, app.billingIdempotencyGuard);
   app.register(async (instance) => {
     await registerLiveRoutes(instance, liveGateway, options.livePubSubSubscriber);
   });

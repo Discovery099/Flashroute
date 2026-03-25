@@ -30,6 +30,9 @@ export interface SubscriptionRecord {
   status: 'active' | 'past_due' | 'cancelled' | 'trialing';
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
+  cancelAtPeriodEnd: boolean;
+  trialEnd: Date | null;
+  graceUntil: Date | null;
 }
 
 export interface RefreshTokenRecord {
@@ -231,6 +234,9 @@ const toUserRecord = (record: any): UserRecord => ({
         status: record.subscription.status,
         currentPeriodStart: record.subscription.currentPeriodStart,
         currentPeriodEnd: record.subscription.currentPeriodEnd,
+        cancelAtPeriodEnd: record.subscription.cancelAtPeriodEnd,
+        trialEnd: record.subscription.trialEnd,
+        graceUntil: record.subscription.graceUntil,
       }
     : null,
 });
