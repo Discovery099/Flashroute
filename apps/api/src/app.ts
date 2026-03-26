@@ -33,6 +33,9 @@ import { StrategiesService } from './modules/strategies/strategies.service';
 import { registerTradesRoutes } from './modules/trades/trades.routes';
 import { PrismaTradesRepository, type TradesRepository } from './modules/trades/trades.repository';
 import { TradesService } from './modules/trades/trades.service';
+import { registerAlertsRoutes } from './modules/alerts/alerts.routes';
+import { PrismaAlertsRepository, type AlertsRepository } from './modules/alerts/alerts.repository';
+import { AlertsService } from './modules/alerts/alerts.service';
 import { registerUserRoutes } from './modules/users/user.routes';
 import { UserService } from './modules/users/user.service';
 import { registerAuthPlugin } from './plugins/auth';
@@ -78,6 +81,8 @@ export interface BuildApiAppOptions {
   liveGateway?: LiveGateway;
   analyticsRepository?: AnalyticsRepository;
   analyticsService?: AnalyticsService;
+  alertsRepository?: AlertsRepository;
+  alertsService?: AlertsService;
   rpcUrl?: string;
   supportedChainRpcUrls?: Record<number, string>;
   redisCache?: { get(key: string): Promise<string | null>; setex(key: string, ttlSeconds: number, value: string): Promise<unknown>; del(key: string): Promise<number>; ping(): Promise<string>; publish(channel: string, message: string): Promise<number>; keys(pattern: string): Promise<string[]> };
@@ -128,6 +133,8 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   const tradesService = options.tradesService ?? new TradesService(tradesRepository);
   const analyticsRepository = options.analyticsRepository ?? new AnalyticsRepository(options.authRepository as never);
   const analyticsService = options.analyticsService ?? new AnalyticsService(analyticsRepository, options.rpcUrl ?? 'https://eth.llamarpc.com');
+  const alertsRepository = options.alertsRepository ?? new PrismaAlertsRepository(options.authRepository as never);
+  const alertsService = options.alertsService ?? new AlertsService(options.authRepository, alertsRepository);
   const hasStripe = Boolean(options.stripeSecretKey);
   const billingRepository = hasStripe ? new PrismaBillingRepository(options.authRepository as never) : null;
   const billingIdempotencyGuard = hasStripe
@@ -165,6 +172,7 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   app.decorate('strategiesService', strategiesService);
   app.decorate('tradesService', tradesService);
   app.decorate('analyticsService', analyticsService);
+  app.decorate('alertsService', alertsService);
   app.decorate('liveGateway', liveGateway);
 
   const adminService = new AdminService(
@@ -197,6 +205,7 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   registerOpportunitiesRoutes(app, opportunitiesService);
   registerStrategiesRoutes(app, strategiesService);
   registerTradesRoutes(app, tradesService);
+  registerAlertsRoutes(app, alertsService);
   registerDashboardRoutes(app, opportunitiesService);
   registerAnalyticsRoutes(app, analyticsService);
   registerAdminRoutes(app, adminService);

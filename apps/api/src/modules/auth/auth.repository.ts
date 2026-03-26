@@ -185,6 +185,20 @@ export interface PrismaAuditLogModel {
   create(args: { data: any }): Promise<any>;
 }
 
+export interface PrismaAlertRuleModel {
+  create(args: { data: any }): Promise<any>;
+  findFirst(args: { where: any }): Promise<any | null>;
+  findMany(args: { where: any; skip?: number; take?: number; orderBy?: any }): Promise<any[]>;
+  update(args: { where: { id: string }; data: any }): Promise<any>;
+  count(args: { where: any }): Promise<number>;
+}
+
+export interface PrismaAlertHistoryModel {
+  create(args: { data: any }): Promise<any>;
+  findMany(args: { where: any; skip?: number; take?: number; orderBy?: any }): Promise<any[]>;
+  count(args: { where: any }): Promise<number>;
+}
+
 export interface PrismaClientLike {
   user: PrismaUserModel;
   refreshToken: PrismaRefreshTokenModel;
@@ -194,6 +208,8 @@ export interface PrismaClientLike {
   apiKey: PrismaApiKeyModel;
   passwordHistory: PrismaPasswordHistoryModel;
   auditLog: PrismaAuditLogModel;
+  alertRule: PrismaAlertRuleModel;
+  alertHistory: PrismaAlertHistoryModel;
 }
 
 export interface RedisClientLike {

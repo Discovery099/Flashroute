@@ -20,6 +20,8 @@ import {
 import { PrismaStrategiesRepository } from '../modules/strategies/strategies.repository';
 import { PrismaTradesRepository } from '../modules/trades/trades.repository';
 import { TradesService } from '../modules/trades/trades.service';
+import { PrismaAlertsRepository } from '../modules/alerts/alerts.repository';
+import { AlertsService } from '../modules/alerts/alerts.service';
 import { AnalyticsRepository } from '../modules/analytics/analytics.repository';
 import { AnalyticsService } from '../modules/analytics/analytics.service';
 import type { OpportunityView } from '@flashroute/shared/contracts/opportunity';
@@ -181,6 +183,8 @@ class FakePrismaClient implements PrismaClientLike {
   public readonly trades: any[] = [];
   public readonly tradeHops: any[] = [];
   public readonly competitorActivityData: any[] = [];
+  public readonly alertRulesData: any[] = [];
+  public readonly alertHistoryData: any[] = [];
   public readonly supportedChains: any[] = [
     { id: 1, chainId: 1, name: 'Ethereum', isActive: true, executorContractAddress: '0xexecutor-eth' },
     { id: 2, chainId: 42161, name: 'Arbitrum', isActive: true, executorContractAddress: '0xexecutor-arb' },
@@ -685,6 +689,116 @@ class FakePrismaClient implements PrismaClientLike {
       return rows;
     },
   };
+
+  public readonly alertRule = {
+    create: async ({ data }: { data: any }) => {
+      const now = new Date();
+      const record = {
+        id: randomUUID(),
+        type: data.type,
+        chainId: data.chainId ?? null,
+        strategyId: data.strategyId ?? null,
+        thresholdValue: data.thresholdValue ?? null,
+        deliveryChannel: data.deliveryChannel ?? 'DASHBOARD',
+        deliveryConfig: data.deliveryConfig ?? {},
+        isActive: data.isActive ?? true,
+        lastTriggeredAt: null,
+        triggerCount: 0,
+        cooldownSeconds: data.cooldownSeconds ?? 60,
+        createdAt: now,
+        updatedAt: now,
+        ...data,
+      };
+      this.alertRulesData.push(record);
+      return record;
+    },
+    findFirst: async ({ where }: { where: any }) =>
+      this.alertRulesData.find((record) => Object.entries(where).every(([key, value]) => {
+        if (key === 'userId') return record.userId === value;
+        if (key === 'id') return record.id === value;
+        if (key === 'isActive') return record.isActive === value;
+        return record[key] === value;
+      })) ?? null,
+    findMany: async ({ where, skip = 0, take, orderBy }: { where: any; skip?: number; take?: number; orderBy?: any }) => {
+      let filtered = this.alertRulesData.filter((record) => Object.entries(where).every(([key, value]) => {
+        if (key === 'userId' && where.userId) return record.userId === where.userId;
+        if (key === 'type' && where.type) return record.type === where.type;
+        if (key === 'isActive' && where.isActive !== undefined) return record.isActive === where.isActive;
+        if (key === 'id') return record.id === value;
+        return true;
+      }));
+      if (orderBy) {
+        const sortKey = Object.keys(orderBy)[0];
+        const sortDir = orderBy[sortKey];
+        filtered = [...filtered].sort((a, b) => {
+          if (sortDir === 'asc') {
+            return a[sortKey] > b[sortKey] ? 1 : -1;
+          }
+          return a[sortKey] < b[sortKey] ? 1 : -1;
+        });
+      }
+      const sliced = take === undefined ? filtered.slice(skip) : filtered.slice(skip, skip + take);
+      return sliced;
+    },
+    update: async ({ where, data }: { where: { id: string }; data: any }) => {
+      const record = this.alertRulesData.find((candidate) => candidate.id === where.id)!;
+      Object.assign(record, data, { updatedAt: new Date() });
+      return record;
+    },
+    count: async ({ where }: { where: any }) => {
+      return this.alertRulesData.filter((record) => {
+        if (where.userId && record.userId !== where.userId) return false;
+        if (where.isActive !== undefined && record.isActive !== where.isActive) return false;
+        return true;
+      }).length;
+    },
+  };
+
+  public readonly alertHistory = {
+    create: async ({ data }: { data: any }) => {
+      const now = new Date();
+      const record = {
+        id: randomUUID(),
+        alertId: data.alertId,
+        userId: data.userId,
+        tradeId: data.tradeId ?? null,
+        message: data.message,
+        deliveryStatus: data.deliveryStatus ?? 'PENDING',
+        deliveredAt: data.deliveredAt ?? null,
+        errorMessage: data.errorMessage ?? null,
+        createdAt: now,
+        ...data,
+      };
+      this.alertHistoryData.push(record);
+      return record;
+    },
+    findMany: async ({ where, skip = 0, take, orderBy }: { where: any; skip?: number; take?: number; orderBy?: any }) => {
+      let filtered = this.alertHistoryData.filter((record) => {
+        if (where.alertId && record.alertId !== where.alertId) return false;
+        if (where.userId && record.userId !== where.userId) return false;
+        return true;
+      });
+      if (orderBy) {
+        const sortKey = Object.keys(orderBy)[0];
+        const sortDir = orderBy[sortKey];
+        filtered = [...filtered].sort((a, b) => {
+          if (sortDir === 'asc') {
+            return a[sortKey] > b[sortKey] ? 1 : -1;
+          }
+          return a[sortKey] < b[sortKey] ? 1 : -1;
+        });
+      }
+      const sliced = take === undefined ? filtered.slice(skip) : filtered.slice(skip, skip + take);
+      return sliced;
+    },
+    count: async ({ where }: { where: any }) => {
+      return this.alertHistoryData.filter((record) => {
+        if (where.alertId && record.alertId !== where.alertId) return false;
+        if (where.userId && record.userId !== where.userId) return false;
+        return true;
+      }).length;
+    },
+  };
 }
 
 export const createTestApiHarness = async () => {
@@ -700,6 +814,8 @@ export const createTestApiHarness = async () => {
   const strategiesRepository = new PrismaStrategiesRepository(prisma as never);
   const tradesRepository = new PrismaTradesRepository(prisma as never);
   const tradesService = new TradesService(tradesRepository);
+  const alertsRepository = new PrismaAlertsRepository(prisma as never);
+  const alertsService = new AlertsService(authRepository, alertsRepository);
   const ephemeralAuthStore = new RedisEphemeralAuthStore(redis, 'fr:');
   const emailQueue = new RedisEmailJobQueue(redis, 'fr:queue:email');
   const rateLimitStore = new RedisRateLimitStore(redis, 'fr:');
@@ -710,6 +826,7 @@ export const createTestApiHarness = async () => {
     authRepository,
     strategiesRepository,
     tradesRepository,
+    alertsRepository,
     ephemeralAuthStore,
     emailQueue,
     rateLimitStore,
@@ -726,6 +843,7 @@ export const createTestApiHarness = async () => {
     },
     opportunitiesService,
     tradesService,
+    alertsService,
     analyticsRepository,
     analyticsService,
   });
