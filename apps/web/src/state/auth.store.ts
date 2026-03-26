@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { authApi } from '@/features/auth/api';
+import { authApi, type AuthUser } from '@/features/auth/api';
 
 export type LogoutReason = 'manual' | 'expired' | 'revoked' | null;
 
@@ -11,6 +11,7 @@ type AuthState = {
   isAuthenticated: boolean;
   postLoginRedirect: string | null;
   logoutReason: LogoutReason;
+  user: AuthUser | null;
   setAccessToken: (token: string | null) => void;
   beginBootstrap: () => void;
   finishBootstrap: (authenticated: boolean) => void;
@@ -20,6 +21,7 @@ type AuthState = {
   completeLogin: (tokens: { accessToken: string }) => void;
   logout: (reason?: LogoutReason) => void;
   reset: () => void;
+  setUser: (user: AuthUser | null) => void;
 };
 
 const REDIRECT_KEY = 'flashroute.post-login-redirect';
@@ -55,6 +57,7 @@ const getInitialState = () => {
     isAuthenticated: false,
     postLoginRedirect,
     logoutReason: null,
+    user: null,
   };
 };
 
@@ -80,6 +83,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       isBootstrapping: false,
     });
   },
+  setUser: (user) => set({ user }),
   logout: (reason = 'manual') => {
     writeSessionValue(REDIRECT_KEY, null);
     set({
@@ -117,7 +121,8 @@ export const bootstrapAuthSession = async () => {
       store.completeLogin({
         accessToken: refreshed.accessToken,
       });
-      await authApi.getCurrentUser(refreshed.accessToken);
+      const userResponse = await authApi.getCurrentUser(refreshed.accessToken);
+      store.setUser(userResponse.user);
       store.finishBootstrap(true);
       return true;
     } catch (error) {

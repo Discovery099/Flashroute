@@ -61,6 +61,7 @@ export function LoginPage() {
   const [challengeToken, setChallengeToken] = useState<string | null>(null);
   const totpInputRef = useRef<HTMLInputElement | null>(null);
   const completeLogin = useAuthStore((state) => state.completeLogin);
+  const setUser = useAuthStore((state) => state.setUser);
   const clearPostLoginRedirect = useAuthStore((state) => state.clearPostLoginRedirect);
   const postLoginRedirect = useAuthStore((state) => state.postLoginRedirect);
 
@@ -134,7 +135,8 @@ export function LoginPage() {
       });
 
       completeLogin({ accessToken: result.accessToken });
-      await authApi.getCurrentUser(result.accessToken);
+      const userResponse = await authApi.getCurrentUser(result.accessToken);
+      setUser(userResponse.user);
 
       const target = sanitizeRedirectTo(searchParams.get('redirectTo')) ?? sanitizeRedirectTo(postLoginRedirect) ?? '/dashboard';
       clearPostLoginRedirect();

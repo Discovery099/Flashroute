@@ -2,6 +2,8 @@ import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest }
 import { ZodError } from 'zod';
 
 import { registerDashboardRoutes } from './modules/dashboard/dashboard.routes';
+import { AdminService, type PrismaAdminClient } from './modules/admin/admin.service';
+import { registerAdminRoutes } from './modules/admin/admin.routes';
 import { registerApiKeyRoutes } from './modules/api-keys/api-keys.routes';
 import { ApiKeysService } from './modules/api-keys/api-keys.service';
 import { registerAuthRoutes } from './modules/auth/auth.routes';
@@ -77,6 +79,8 @@ export interface BuildApiAppOptions {
   analyticsRepository?: AnalyticsRepository;
   analyticsService?: AnalyticsService;
   rpcUrl?: string;
+  supportedChainRpcUrls?: Record<number, string>;
+  redisCache?: { get(key: string): Promise<string | null>; setex(key: string, ttlSeconds: number, value: string): Promise<unknown>; del(key: string): Promise<number>; ping(): Promise<string>; publish(channel: string, message: string): Promise<number>; keys(pattern: string): Promise<string[]> };
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
   stripePriceIds?: Record<string, string>;
@@ -162,6 +166,23 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   app.decorate('tradesService', tradesService);
   app.decorate('analyticsService', analyticsService);
   app.decorate('liveGateway', liveGateway);
+
+  const adminService = new AdminService(
+    (options.authRepository as unknown as { prisma: PrismaAdminClient }).prisma,
+    options.redisCache ?? {
+      get: async () => null,
+      setex: async () => 'OK',
+      del: async () => 0,
+      ping: async () => 'PONG',
+      publish: async () => 0,
+      keys: async () => [],
+    },
+    authService,
+    options.auth.jwtSecret,
+    options.supportedChainRpcUrls ?? { 1: 'https://eth.llamarpc.com' },
+  );
+  app.decorate('adminService', adminService);
+
   if (billingIdempotencyGuard) {
     app.decorate('billingIdempotencyGuard', billingIdempotencyGuard);
   }
@@ -178,6 +199,7 @@ export const buildApiApp = (options: BuildApiAppOptions): FastifyInstance => {
   registerTradesRoutes(app, tradesService);
   registerDashboardRoutes(app, opportunitiesService);
   registerAnalyticsRoutes(app, analyticsService);
+  registerAdminRoutes(app, adminService);
   app.register(async (instance) => {
     await registerLiveRoutes(instance, liveGateway, options.livePubSubSubscriber);
   });

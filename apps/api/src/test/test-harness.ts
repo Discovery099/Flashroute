@@ -191,6 +191,67 @@ class FakePrismaClient implements PrismaClientLike {
   public readonly user = {
     findUnique: async ({ where }: { where: { id?: string; email?: string } }) =>
       this.users.find((user) => (where.id ? user.id === where.id : user.email === where.email)) ?? null,
+    findMany: async ({ where, skip, take, orderBy }: { where?: any; skip?: number; take?: number; orderBy?: any }) => {
+      let filtered = this.users.filter((user) => {
+        if (!where) return true;
+        for (const [key, value] of Object.entries(where)) {
+          if (key === 'OR') {
+            const orClauses = value as Array<Record<string, any>>;
+            const matchesAny = orClauses.some((clause) => {
+              return Object.entries(clause).every(([k, v]) => {
+                if (typeof v === 'object' && v !== null && 'contains' in v) {
+                  const userVal = String((user as any)[k] ?? '').toLowerCase();
+                  return userVal.includes(String(v.contains).toLowerCase());
+                }
+                return (user as any)[k] === v;
+              });
+            });
+            if (!matchesAny) return false;
+          } else if (key === 'role' && user.role !== value) return false;
+          else if (key === 'deletedAt' && value === null && user.deletedAt !== null) return false;
+          else if (key === 'deletedAt' && value === undefined && user.deletedAt !== null) return false;
+          else if (key === 'deletedAt' && value && (value as any).not === null && user.deletedAt === null) return false;
+          else if (key === 'lockedUntil' && value && (value as any).not === null && user.lockedUntil === null) return false;
+          else if (key === 'subscription') {
+            const subFilter = value as { status?: string };
+            const subscription = this.subscriptions.find((s) => s.userId === user.id);
+            if (subFilter.status && subscription?.status !== subFilter.status) return false;
+          }
+        }
+        return true;
+      });
+      if (orderBy) {
+        const key = Object.keys(orderBy)[0];
+        const dir = orderBy[key];
+        filtered = [...filtered].sort((a, b) => {
+          const aVal = a[key] instanceof Date ? a[key].getTime() : a[key];
+          const bVal = b[key] instanceof Date ? b[key].getTime() : b[key];
+          return dir === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+        });
+      }
+      const start = skip ?? 0;
+      const end = take !== undefined ? start + take : undefined;
+      return filtered.slice(start, end).map((user) => ({
+        ...user,
+        subscription: this.subscriptions.find((s) => s.userId === user.id) ?? null,
+      }));
+    },
+    count: async ({ where }: { where?: any }) => {
+      let filtered = this.users;
+      if (where) {
+        filtered = filtered.filter((user) => {
+          for (const [key, value] of Object.entries(where)) {
+            if (key === 'role' && user.role !== value) return false;
+            if (key === 'deletedAt' && value === null && user.deletedAt !== null) return false;
+            if (key === 'deletedAt' && value === undefined && user.deletedAt !== null) return false;
+            if (key === 'deletedAt' && value && (value as any).not === null && user.deletedAt === null) return false;
+            if (key === 'lockedUntil' && value && (value as any).not === null && user.lockedUntil === null) return false;
+          }
+          return true;
+        });
+      }
+      return filtered.length;
+    },
     create: async ({ data }: { data: any }) => {
       const now = new Date();
       const record = {
@@ -211,9 +272,18 @@ class FakePrismaClient implements PrismaClientLike {
       this.users.push(record);
       return record;
     },
-    update: async ({ where, data }: { where: { id: string }; data: any }) => {
+    update: async ({ where, data, include }: { where: { id: string }; data: any; include?: { subscription?: boolean } }) => {
       const record = this.users.find((user) => user.id === where.id);
+      const dateFields = ['lockedUntil', 'deletedAt', 'emailVerifiedAt', 'lastLoginAt'];
+      for (const field of dateFields) {
+        if (field in data && typeof data[field] === 'string') {
+          data[field] = new Date(data[field]);
+        }
+      }
       Object.assign(record, data, { updatedAt: new Date() });
+      if (include?.subscription) {
+        record.subscription = this.subscriptions.find((s) => s.userId === record.id) ?? null;
+      }
       return record;
     },
   };
@@ -369,6 +439,39 @@ class FakePrismaClient implements PrismaClientLike {
       return record;
     },
   };
+
+  public readonly subscription = {
+    update: async ({ where, data }: { where: { userId: string }; data: any }) => {
+      const sub = this.subscriptions.find((s) => s.userId === where.userId);
+      if (sub) {
+        Object.assign(sub, data);
+      }
+      return sub;
+    },
+  };
+
+  public readonly systemConfig = {
+    findMany: async () => this.systemConfigs,
+    findUnique: async ({ where }: { where: { key: string } }) =>
+      this.systemConfigs.find((c) => c.key === where.key) ?? null,
+    update: async ({ where, data }: { where: { key: string }; data: any }) => {
+      const config = this.systemConfigs.find((c) => c.key === where.key);
+      if (config) {
+        Object.assign(config, data, { updatedAt: new Date() });
+      }
+      return config;
+    },
+  };
+
+  public readonly systemConfigs: any[] = [
+    { id: 1, key: 'global_min_profit_usd', value: 10, description: 'Global min profit', updatedAt: new Date(), updatedBy: null },
+    { id: 2, key: 'max_concurrent_executions', value: 1, description: 'Max concurrent executions', updatedAt: new Date(), updatedBy: null },
+    { id: 3, key: 'mempool_monitoring_enabled', value: true, description: 'Enable mempool monitoring', updatedAt: new Date(), updatedBy: null },
+    { id: 4, key: 'profit_sweep_enabled', value: true, description: 'Enable profit sweep', updatedAt: new Date(), updatedBy: null },
+    { id: 5, key: 'new_registration_enabled', value: true, description: 'Allow new registrations', updatedAt: new Date(), updatedBy: null },
+    { id: 6, key: 'maintenance_mode', value: false, description: 'Maintenance mode', updatedAt: new Date(), updatedBy: null },
+    { id: 7, key: 'execution_paused', value: false, description: 'Execution paused', updatedAt: new Date(), updatedBy: null },
+  ];
 
   public readonly supportedChain = {
     findUnique: async ({ where }: { where: { chainId: number } }) =>

@@ -3,6 +3,8 @@ import { Shield, Activity } from 'lucide-react';
 import React, { useEffect, type ReactNode } from 'react';
 import { Link, Navigate, Outlet, createBrowserRouter, useLocation, type RouteObject } from 'react-router-dom';
 
+import { AdminUsersPage } from '@/features/admin/pages/AdminUsersPage';
+import { AdminSystemPage } from '@/features/admin/pages/AdminSystemPage';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { RegisterPage } from '@/features/auth/pages/RegisterPage';
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
@@ -208,6 +210,32 @@ export function PublicAuthPage({ children, allowWhenAuthenticated = false }: { c
 }
 
 function AdminRouteFrame() {
+  const userRole = useAuthStore((state) => state.user?.role);
+  const isAdmin = userRole === 'admin';
+
+  if (!isAdmin) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center">
+        <div className="w-full max-w-md rounded-3xl border border-fx-border bg-fx-surface p-8 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-red-400/25 bg-red-500/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-red-200">
+            <Shield className="h-3.5 w-3.5" />
+            Access Denied
+          </div>
+          <h1 className="mt-6 text-2xl font-semibold">Admin access required</h1>
+          <p className="mt-3 text-sm text-fx-text-secondary">
+            You do not have permission to view this page. Contact your administrator if you believe
+            this is an error.
+          </p>
+          <div className="mt-6">
+            <Button as={Link} to="/dashboard" variant="secondary">
+              Return to Dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return <Outlet />;
 }
 
@@ -276,8 +304,8 @@ export const appRoutes: RouteObject[] = [
         element: <AdminRouteFrame />,
         children: [
           { index: true, element: <Navigate to="/admin/users" replace /> },
-          { path: 'users', element: <PlaceholderPage eyebrow="Admin" title="User administration" description="User management scaffolding is isolated behind the admin route group for later role gating." /> },
-          { path: 'system', element: <PlaceholderPage eyebrow="Admin" title="System health" description="Operational telemetry, queue health, and controls will mount here with admin-only data policies." /> },
+          { path: 'users', element: <AdminUsersPage /> },
+          { path: 'system', element: <AdminSystemPage /> },
         ],
       },
     ],
