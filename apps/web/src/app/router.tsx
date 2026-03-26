@@ -5,6 +5,7 @@ import { Link, Navigate, Outlet, createBrowserRouter, useLocation, type RouteObj
 
 import { AdminUsersPage } from '@/features/admin/pages/AdminUsersPage';
 import { AdminSystemPage } from '@/features/admin/pages/AdminSystemPage';
+import { ApiKeysPage } from '@/features/api-keys/pages/ApiKeysPage';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { RegisterPage } from '@/features/auth/pages/RegisterPage';
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
@@ -298,7 +299,7 @@ export const appRoutes: RouteObject[] = [
       { path: 'analytics', element: <AnalyticsPage /> },
       { path: 'settings', element: <PlaceholderPage eyebrow="Workspace" title="Settings" description="Account, API, and environment preferences will inherit the same state and token foundation." /> },
       { path: 'billing', element: React.createElement(React.lazy(() => import('../features/billing/pages/BillingPage'))) },
-      { path: 'api-keys', element: <PlaceholderPage eyebrow="Workspace" title="API keys" description="API key management gets a reserved product route now for later auth-aware provisioning and audit work." /> },
+      { path: 'api-keys', element: <ApiKeysPage /> },
       {
         path: 'admin',
         element: <AdminRouteFrame />,
