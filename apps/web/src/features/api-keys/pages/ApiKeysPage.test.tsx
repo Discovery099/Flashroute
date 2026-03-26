@@ -1,8 +1,15 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 
 import ApiKeysPage from './ApiKeysPage';
 import { resetAuthStore, useAuthStore } from '@/state/auth.store';
 import { renderWithProviders } from '@/test/renderWithProviders';
+
+Object.defineProperty(navigator, 'clipboard', {
+  value: {
+    writeText: vi.fn().mockResolvedValue(undefined),
+  },
+  writable: true,
+});
 
 const mockApiKey = {
   id: 'key_123',
@@ -16,17 +23,30 @@ const mockApiKey = {
 
 const mockApiKeys = [mockApiKey];
 
+const mockFetch = vi.fn();
+globalThis.fetch = mockFetch;
+
 describe('ApiKeysPage', () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
+    mockFetch.mockReset();
+    mockFetch.mockResolvedValue(
+      new Response(JSON.stringify({ success: true, apiKeys: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
     resetAuthStore();
     useAuthStore.getState().completeLogin({ accessToken: 'test-token' });
     useAuthStore.getState().setUser({ id: 'user_123', email: 'test@example.com', name: 'Test User', role: 'trader', emailVerified: true });
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe('API Keys List', () => {
     it('renders API keys table when data is loaded', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      mockFetch.mockResolvedValueOnce(
         new Response(JSON.stringify({ success: true, apiKeys: mockApiKeys }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
@@ -36,20 +56,12 @@ describe('ApiKeysPage', () => {
       renderWithProviders(<ApiKeysPage />, { route: '/api-keys' });
 
       await waitFor(() => {
-        expect(screen.getByText('API Keys')).toBeInTheDocument();
+        expect(screen.getByText('Test Key')).toBeInTheDocument();
       });
-      expect(screen.getByText('Test Key')).toBeInTheDocument();
       expect(screen.getByText('fr_live_abc123')).toBeInTheDocument();
     });
 
     it('shows empty state when no API keys exist', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-        new Response(JSON.stringify({ success: true, apiKeys: [] }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }),
-      );
-
       renderWithProviders(<ApiKeysPage />, { route: '/api-keys' });
 
       await waitFor(() => {
@@ -58,7 +70,7 @@ describe('ApiKeysPage', () => {
     });
 
     it('shows error state when fetch fails', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      mockFetch.mockResolvedValue(
         new Response(JSON.stringify({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Server error' } }), {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
@@ -74,49 +86,44 @@ describe('ApiKeysPage', () => {
   });
 
   describe('Create Key Modal', () => {
-    it('opens create modal when clicking Create API Key button', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-        new Response(JSON.stringify({ success: true, apiKeys: [] }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }),
-      );
-
-      renderWithProviders(<ApiKeysPage />, { route: '/api-keys' });
-
+    const openCreateModal = async () => {
+      const buttons = screen.getAllByRole('button', { name: /create api key/i });
+      const headerButton = buttons.find(b => b.closest('header') !== null);
+      fireEvent.click(headerButton || buttons[buttons.length - 1]);
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /create api key/i })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /create api key/i })).toBeInTheDocument();
       });
+    };
 
-      fireEvent.click(screen.getByRole('button', { name: /create api key/i }));
+    const getCreateModal = () => {
+      const heading = screen.getByRole('heading', { name: 'Create API Key' });
+      return heading.closest('section') || heading.closest('div[class*="fixed"]');
+    };
 
-      expect(screen.getByText('Create API Key')).toBeInTheDocument();
-      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+    it('opens create modal when clicking Create API Key button', async () => {
+      renderWithProviders(<ApiKeysPage />, { route: '/api-keys' });
+      await openCreateModal();
+
+      const modal = getCreateModal();
+      expect(within(modal!).getByLabelText(/name/i)).toBeInTheDocument();
     });
 
     it('validates name field is 2-50 characters', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-        new Response(JSON.stringify({ success: true, apiKeys: [] }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }),
-      );
-
       renderWithProviders(<ApiKeysPage />, { route: '/api-keys' });
+      await openCreateModal();
 
-      await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /create api key/i })));
-
-      const nameInput = screen.getByLabelText(/name/i);
+      const modal = getCreateModal()!;
+      const nameInput = within(modal).getByLabelText(/name/i);
       fireEvent.change(nameInput, { target: { value: 'a' } });
-      fireEvent.click(screen.getByRole('button', { name: /^create key$/i }));
+      fireEvent.click(within(modal).getByRole('button', { name: /^create key$/i }));
 
-      expect(screen.getByText(/name must be 2-50 characters/i)).toBeInTheDocument();
+      expect(within(modal).getByText(/name must be 2-50 characters/i)).toBeInTheDocument();
     });
 
     it('creates API key and shows reveal modal', async () => {
       const fullKey = 'fr_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
-      vi.spyOn(globalThis, 'fetch')
+      mockFetch
         .mockResolvedValueOnce(
           new Response(JSON.stringify({ success: true, apiKeys: [] }), {
             status: 200,
@@ -136,13 +143,12 @@ describe('ApiKeysPage', () => {
         );
 
       renderWithProviders(<ApiKeysPage />, { route: '/api-keys' });
+      await openCreateModal();
 
-      await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /create api key/i })));
-
-      const nameInput = screen.getByLabelText(/name/i);
+      const modal = getCreateModal()!;
+      const nameInput = within(modal).getByLabelText(/name/i);
       fireEvent.change(nameInput, { target: { value: 'Production Bot' } });
-
-      fireEvent.click(screen.getByRole('button', { name: /^create key$/i }));
+      fireEvent.click(within(modal).getByRole('button', { name: /^create key$/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/save your api key/i)).toBeInTheDocument();
@@ -157,7 +163,7 @@ describe('ApiKeysPage', () => {
     const fullApiKey = 'fr_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
     const setupRevealModal = async () => {
-      vi.spyOn(globalThis, 'fetch')
+      mockFetch
         .mockResolvedValueOnce(
           new Response(JSON.stringify({ success: true, apiKeys: [] }), {
             status: 200,
@@ -178,11 +184,15 @@ describe('ApiKeysPage', () => {
 
       renderWithProviders(<ApiKeysPage />, { route: '/api-keys' });
 
-      await waitFor(() => fireEvent.click(screen.getByRole('button', { name: /create api key/i })));
+      const buttons = screen.getAllByRole('button', { name: /create api key/i });
+      const headerButton = buttons.find(b => b.closest('header') !== null);
+      fireEvent.click(headerButton || buttons[buttons.length - 1]);
 
-      const nameInput = screen.getByLabelText(/name/i);
+      const modalHeading = await waitFor(() => screen.getByRole('heading', { name: 'Create API Key' }));
+      const modal = modalHeading.closest('section') || modalHeading.closest('div[class*="fixed"]');
+      const nameInput = within(modal!).getByLabelText(/name/i);
       fireEvent.change(nameInput, { target: { value: 'Production Bot' } });
-      fireEvent.click(screen.getByRole('button', { name: /^create key$/i }));
+      fireEvent.click(within(modal!).getByRole('button', { name: /^create key$/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/save your api key/i)).toBeInTheDocument();
@@ -226,7 +236,7 @@ describe('ApiKeysPage', () => {
 
   describe('Revoke Flow', () => {
     it('opens confirmation modal when revoke is clicked', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      mockFetch.mockResolvedValueOnce(
         new Response(JSON.stringify({ success: true, apiKeys: mockApiKeys }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
@@ -247,7 +257,7 @@ describe('ApiKeysPage', () => {
     });
 
     it('requires typing REVOKE to enable confirm button', async () => {
-      vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      mockFetch.mockResolvedValueOnce(
         new Response(JSON.stringify({ success: true, apiKeys: mockApiKeys }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
@@ -270,7 +280,7 @@ describe('ApiKeysPage', () => {
     });
 
     it('calls DELETE API when revoke is confirmed', async () => {
-      vi.spyOn(globalThis, 'fetch')
+      mockFetch
         .mockResolvedValueOnce(
           new Response(JSON.stringify({ success: true, apiKeys: mockApiKeys }), {
             status: 200,
@@ -294,7 +304,7 @@ describe('ApiKeysPage', () => {
       fireEvent.click(screen.getByRole('button', { name: /revoke key/i }));
 
       await waitFor(() => {
-        expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect(mockFetch).toHaveBeenCalledWith(
           '/api/v1/api-keys/key_123',
           expect.objectContaining({ method: 'DELETE' }),
         );
