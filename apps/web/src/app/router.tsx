@@ -25,6 +25,16 @@ import { AppShell } from '../layouts/AppShell';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { MarketingLayout } from '../layouts/MarketingLayout';
 import { bootstrapAuthSession, useAuthStore } from '../state/auth.store';
+import { LandingPage } from '@/features/marketing/pages/LandingPage';
+import { PricingPage } from '@/features/marketing/pages/PricingPage';
+import { FeaturesPage } from '@/features/marketing/pages/FeaturesPage';
+import { SecurityPage } from '@/features/marketing/pages/SecurityPage';
+import { FAQPage } from '@/features/marketing/pages/FAQPage';
+import { DocsPreviewPage } from '@/features/marketing/pages/DocsPreviewPage';
+import { ContactSalesPage } from '@/features/marketing/pages/ContactSalesPage';
+import { TermsPage } from '@/features/marketing/pages/TermsPage';
+import { PrivacyPage } from '@/features/marketing/pages/PrivacyPage';
+import { RiskDisclosurePage } from '@/features/marketing/pages/RiskDisclosurePage';
 
 type PlaceholderPageProps = {
   eyebrow: string;
@@ -246,27 +256,16 @@ export const appRoutes: RouteObject[] = [
     path: '/',
     element: <MarketingLayout />,
     children: [
-      { index: true, element: <MarketingHome /> },
-      {
-        path: 'pricing',
-        element: (
-          <PlaceholderPage
-            eyebrow="Marketing"
-            title="Pricing"
-            description="Plan scaffolding is available now so billing routes can later connect to entitlement-aware UI flows."
-          />
-        ),
-      },
-      {
-        path: 'contact',
-        element: (
-          <PlaceholderPage
-            eyebrow="Marketing"
-            title="Operator onboarding"
-            description="Public funnels stay visually aligned with the trading console while keeping protected product routes isolated."
-          />
-        ),
-      },
+      { index: true, element: <LandingPage /> },
+      { path: 'pricing', element: <PricingPage /> },
+      { path: 'features', element: <FeaturesPage /> },
+      { path: 'security', element: <SecurityPage /> },
+      { path: 'faq', element: <FAQPage /> },
+      { path: 'docs-preview', element: <DocsPreviewPage /> },
+      { path: 'contact-sales', element: <ContactSalesPage /> },
+      { path: 'terms', element: <TermsPage /> },
+      { path: 'privacy', element: <PrivacyPage /> },
+      { path: 'risk-disclosure', element: <RiskDisclosurePage /> },
     ],
   },
   {
