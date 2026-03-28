@@ -1,6 +1,93 @@
-.worktrees/
+# =============================================================================
+# FlashRoute .gitignore
+# =============================================================================
+
+# Dependencies
 node_modules/
-dist/
-coverage/
 .pnpm-store/
+.pnpm/
+
+# Build outputs
+dist/
+.build/
+.next/
 .turbo/
+
+# Test coverage
+coverage/
+
+# Environment files — NEVER commit these
+.env
+.env.*
+!.env.example
+!.env.development
+!.env.test
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+.DS_Store
+Thumbs.db
+
+# Git worktrees
+.worktrees/
+
+# Backup files
+*.bak
+*.backup
+backups/
+
+# Docker volumes (local dev)
+postgres_data/
+redis_data/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime artifacts
+*.pid
+*.seed
+*.pid.lock
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Prisma
+packages/db/prisma/*.db
+packages/db/prisma/*.db-journal
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Compiled output (if any outside dist/)
+*.js.map
+*.mjs.map
+*.d.ts.map
+
+# Stack execution artifacts (never commit keys)
+*.keystore
+*.jks
+*.p12
+wallet.json
+
+# Local config overrides
+apps/*/vite.config.local.ts
+apps/*/vitest.config.local.ts
+
+# Vitest
+test-results/
+playwright-report/
+playwright/.cache/
+
+# ESLint
+.eslintcache

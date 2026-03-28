@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 160" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0f1e"/>
+      <stop offset="100%" style="stop-color:#111827"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4"/>
+      <stop offset="100%" style="stop-color:#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f59e0b"/>
+      <stop offset="100%" style="stop-color:#fbbf24"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="160" rx="16" fill="url(#bg)"/>
+
+  <!-- Grid lines (subtle) -->
+  <g opacity="0.06">
+    <line x1="0" y1="40" x2="800" y2="40" stroke="#06b6d4" stroke-width="1"/>
+    <line x1="0" y1="80" x2="800" y2="80" stroke="#06b6d4" stroke-width="1"/>
+    <line x1="0" y1="120" x2="800" y2="120" stroke="#06b6d4" stroke-width="1"/>
+    <line x1="160" y1="0" x2="160" y2="160" stroke="#06b6d4" stroke-width="1"/>
+    <line x1="320" y1="0" x2="320" y2="160" stroke="#06b6d4" stroke-width="1"/>
+    <line x1="480" y1="0" x2="480" y2="160" stroke="#06b6d4" stroke-width="1"/>
+    <line x1="640" y1="0" x2="640" y2="160" stroke="#06b6d4" stroke-width="1"/>
+  </g>
+
+  <!-- Left accent bar -->
+  <rect x="0" y="0" width="4" height="160" rx="2" fill="url(#cyan)"/>
+
+  <!-- Logo mark: hexagon with lightning bolt -->
+  <g transform="translate(32, 40)">
+    <!-- Hexagon -->
+    <polygon points="28,0 56,14 56,42 28,56 0,42 0,14" fill="none" stroke="url(#cyan)" stroke-width="2"/>
+    <!-- Lightning bolt -->
+    <path d="M34 8 L22 28 L30 28 L26 48 L42 24 L33 24 Z" fill="url(#cyan)" opacity="0.9"/>
+  </g>
+
+  <!-- FlashRoute text -->
+  <text x="108" y="72" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="38" font-weight="700" fill="#f0f9ff" letter-spacing="-1">FlashRoute</text>
+
+  <!-- Tagline -->
+  <text x="108" y="100" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13" fill="#64748b" letter-spacing="2">ARBITRAGE INTELLIGENCE PLATFORM</text>
+
+  <!-- Divider -->
+  <line x1="108" y1="114" x2="320" y2="114" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Status pills -->
+  <g transform="translate(108, 122)">
+    <!-- Monitoring pill -->
+    <rect x="0" y="0" width="96" height="22" rx="11" fill="#06b6d4" opacity="0.15"/>
+    <circle cx="10" cy="11" r="4" fill="#06b6d4"/>
+    <text x="20" y="15" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="10" fill="#06b6d4" font-weight="600">MONITORING</text>
+
+    <!-- Execution pill -->
+    <rect x="104" y="0" width="88" height="22" rx="11" fill="#f59e0b" opacity="0.15"/>
+    <circle cx="114" cy="11" r="4" fill="#f59e0b"/>
+    <text x="124" y="15" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="10" fill="#f59e0b" font-weight="600">EXECUTION</text>
+
+    <!-- Disabled indicator -->
+    <rect x="200" y="0" width="54" height="22" rx="11" fill="#1e293b"/>
+    <text x="210" y="15" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="10" fill="#475569" font-weight="600">DISABLED</text>
+  </g>
+
+  <!-- Right side: version + stats -->
+  <g transform="translate(560, 40)">
+    <text x="0" y="16" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#475569">v1.0.0</text>
+    <text x="0" y="36" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#475569">Node 22.x</text>
+    <text x="0" y="56" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#475569">TypeScript</text>
+  </g>
+
+  <g transform="translate(640, 40)">
+    <text x="0" y="16" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#475569">Tests</text>
+    <text x="0" y="36" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#475569">Stacks</text>
+    <text x="0" y="56" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#475569">Deploy</text>
+  </g>
+
+  <g transform="translate(700, 40)">
+    <text x="0" y="16" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#06b6d4" font-weight="600">162+</text>
+    <text x="0" y="36" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#06b6d4" font-weight="600">Docker</text>
+    <text x="0" y="56" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#06b6d4" font-weight="600">MIT</text>
+  </g>
+
+  <!-- Bottom glow line -->
+  <rect x="4" y="156" width="792" height="1" rx="0.5" fill="url(#cyan)" opacity="0.3"/>
+</svg>
