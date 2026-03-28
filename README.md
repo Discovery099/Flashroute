@@ -6,14 +6,14 @@
 
 **Real-time DeFi arbitrage intelligence and analytics for traders and funds.**
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/Discovery099/flashroute/ci.yml?style=flat-square&logo=github)](https://github.com/Discovery099/flashroute/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/Discovery099/Flashroute/ci.yml?style=flat-square&logo=github)](https://github.com/Discovery099/Flashroute/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/Node.js-22.x-green?style=flat-square&logo=node.js)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
-[![Tests](https://img.shields.io/badge/Tests-162%2B-brightgreen?style=flat-square)](https://github.com/Discovery099/flashroute/actions)
+[![Tests](https://img.shields.io/badge/Tests-162%2B-brightgreen?style=flat-square)](https://github.com/Discovery099/Flashroute/actions)
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square)](CONTRIBUTING.md)
-[![GitHub Stars](https://img.shields.io/github/stars/Discovery099/flashroute?style=social)](https://github.com/Discovery099/flashroute/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/Discovery099/flashroute?style=social)](https://github.com/Discovery099/flashroute/network/members)
+[![GitHub Stars](https://img.shields.io/github/stars/Discovery099/Flashroute?style=social)](https://github.com/Discovery099/Flashroute/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/Discovery099/Flashroute?style=social)](https://github.com/Discovery099/Flashroute/network/members)
 
 </div>
 
@@ -131,7 +131,7 @@ graph TB
 ### 1. Clone and Setup
 
 ```bash
-git clone https://github.com/Discovery099/flashroute.git
+git clone https://github.com/Discovery099/Flashroute.git
 cd flashroute
 node setup.js
 ```
@@ -262,7 +262,7 @@ Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Discovery099/flashroute&type=Date)](https://star-history.com/#Discovery099/flashroute&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Discovery099/Flashroute&type=Date)](https://star-history.com/#Discovery099/Flashroute&Date)
 
 ---
 
