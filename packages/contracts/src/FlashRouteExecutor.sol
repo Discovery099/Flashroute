@@ -10,32 +10,7 @@ import {IPool} from "./interfaces/IPool.sol";
 import {IUniswapV2Router02} from "./interfaces/IUniswapV2Router02.sol";
 import {IV3SwapRouter} from "./interfaces/IV3SwapRouter.sol";
 import {ICurvePool} from "./interfaces/ICurvePool.sol";
-
-uint8 constant DEX_UNISWAP_V2 = 1;
-uint8 constant DEX_UNISWAP_V3 = 2;
-uint8 constant DEX_CURVE = 3;
-uint8 constant DEX_BALANCER = 4;
-
-uint8 constant FL_BALANCER = 1;
-uint8 constant FL_AAVE_V3 = 2;
-
-struct SwapHop {
-    uint8 dexType;
-    address router;
-    address tokenIn;
-    address tokenOut;
-    uint256 amountIn;
-    uint256 sqrtPriceLimitX96;
-}
-
-struct RouteParams {
-    uint8 flashLoanProvider;
-    address flashLoanToken;
-    uint256 flashLoanAmount;
-    uint256 minProfit;
-    uint256 deadline;
-    SwapHop[] hops;
-}
+import {SwapHop, RouteParams, DEX_UNISWAP_V2, DEX_UNISWAP_V3, DEX_CURVE, DEX_BALANCER, FL_BALANCER, FL_AAVE_V3} from "./types/Types.sol";
 
 contract FlashRouteExecutor is ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -58,6 +33,10 @@ contract FlashRouteExecutor is ReentrancyGuard {
     mapping(address => bool) public isAavePool;
     mapping(address => bool) public isAllowedRouter;
     mapping(address => bool) public isAllowedToken;
+
+    // ─── Vault/pool lists (for iteration) ─────────────────────────────────
+    address[] internal balancerVaultList;
+    address[] internal aavePoolList;
 
     // ─── Events ────────────────────────────────────────────────────────────
     event OperatorChangePending(address indexed newOperator);
@@ -114,9 +93,11 @@ contract FlashRouteExecutor is ReentrancyGuard {
 
         for (uint256 i = 0; i < _balancerVaults.length; i++) {
             isBalancerVault[_balancerVaults[i]] = true;
+            balancerVaultList.push(_balancerVaults[i]);
         }
         for (uint256 i = 0; i < _aavePools.length; i++) {
             isAavePool[_aavePools[i]] = true;
+            aavePoolList.push(_aavePools[i]);
         }
         for (uint256 i = 0; i < _routers.length; i++) {
             isAllowedRouter[_routers[i]] = true;
@@ -150,7 +131,7 @@ contract FlashRouteExecutor is ReentrancyGuard {
             tokens[0] = params.flashLoanToken;
             uint256[] memory amounts = new uint256[](1);
             amounts[0] = params.flashLoanAmount;
-            IVault(params.flashLoanToken).flashLoan(
+            IVault(params.flashLoanVault).flashLoan(
                 address(this),
                 tokens,
                 amounts,
@@ -164,7 +145,7 @@ contract FlashRouteExecutor is ReentrancyGuard {
             amounts[0] = params.flashLoanAmount;
             uint256[] memory modes = new uint256[](1);
             modes[0] = 0;
-            IPool(params.flashLoanToken).flashLoan(
+            IPool(params.flashLoanVault).flashLoan(
                 address(this),
                 assets,
                 amounts,
@@ -177,20 +158,16 @@ contract FlashRouteExecutor is ReentrancyGuard {
     }
 
     function _validateBalancerFlashLoan(RouteParams calldata params) internal view {
-        address vault = address(0);
-        // The Balancer Vault address is derived from the flashLoanToken being used.
-        // For ETH flash loans, the vault handles WETH. We whitelist the vault separately.
-        // Use the first whitelisted Balancer vault for this call.
         (bool found,) = _findBalancerVault();
         if (!found) revert Errors.InvalidToken(params.flashLoanToken);
     }
 
     function _findBalancerVault() internal view returns (bool found, address vault) {
-        // Iterate through known Balancer vault addresses
-        // In production deployment, the vault address is passed at construction.
-        // For ETH-based flash loans, the vault at 0xBA122... handles WETH.
-        vault = address(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
-        found = isBalancerVault[vault];
+        for (uint256 i = 0; i < balancerVaultList.length; i++) {
+            if (isBalancerVault[balancerVaultList[i]]) {
+                return (true, balancerVaultList[i]);
+            }
+        }
     }
 
     function _validateAaveFlashLoan(RouteParams calldata params) internal view {
@@ -199,8 +176,11 @@ contract FlashRouteExecutor is ReentrancyGuard {
     }
 
     function _findAavePool() internal view returns (bool found, address pool) {
-        pool = address(0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2);
-        found = isAavePool[pool];
+        for (uint256 i = 0; i < aavePoolList.length; i++) {
+            if (isAavePool[aavePoolList[i]]) {
+                return (true, aavePoolList[i]);
+            }
+        }
     }
 
     // ─── Balancer callback (ERC-3156) ──────────────────────────────────────
@@ -209,7 +189,7 @@ contract FlashRouteExecutor is ReentrancyGuard {
         uint256 amount,
         uint256 fee,
         bytes calldata data
-    ) external nonReentrant {
+    ) external {
         if (!isBalancerVault[msg.sender]) revert Errors.Unauthorized();
 
         RouteParams memory params = abi.decode(data, (RouteParams));
@@ -236,7 +216,7 @@ contract FlashRouteExecutor is ReentrancyGuard {
         uint256[] calldata premiums,
         address,
         bytes calldata data
-    ) external nonReentrant returns (bool) {
+    ) external returns (bool) {
         if (!isAavePool[msg.sender]) revert Errors.Unauthorized();
 
         RouteParams memory params = abi.decode(data, (RouteParams));
