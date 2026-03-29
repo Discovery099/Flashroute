@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ExecutionEngine } from './execution-engine';
 
+vi.mock('@flashroute/db/redis', () => ({
+  createRedisClients: vi.fn(),
+  checkRedisHealth: vi.fn(),
+}));
+
 describe('ExecutionEngine', () => {
   let mockConfig: any;
   let mockNonceManager: any;

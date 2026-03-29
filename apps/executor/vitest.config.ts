@@ -6,6 +6,7 @@ export default defineConfig({
     alias: {
       '@flashroute/blockchain': resolve(__dirname, '../../packages/blockchain/src/index.ts'),
       '@flashroute/shared': resolve(__dirname, '../../packages/shared/src/index.ts'),
+      '@flashroute/shared/health': resolve(__dirname, '../../packages/shared/src/health.ts'),
     },
   },
   test: {
