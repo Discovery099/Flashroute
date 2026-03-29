@@ -3,6 +3,11 @@ import { RedisSubscriber } from '../channels/redis-subscriber';
 import { NonceManager } from '../modules/execution/nonce-manager';
 import { TxTracker } from '../modules/execution/tx-tracker';
 import { ExecutionEngine } from '../services/execution-engine';
+import { SafetyService } from '../modules/safety/safety-service';
+import { FailureTracker } from '../modules/safety/failure-tracker';
+import { AlertPublisher } from '../modules/safety/alert-publisher';
+import { HealthMonitor } from '../modules/safety/health-monitor';
+import { RuntimeConfigSubscriber } from '../modules/safety/runtime-config-subscriber';
 import { loadExecutionConfig, type ExecutionConfig } from '../config/execution.config';
 import { createRedisClients, checkRedisHealth } from '@flashroute/db/redis';
 import { createLogger, REDIS_CHANNELS } from '@flashroute/shared';
@@ -41,18 +46,40 @@ export class ExecutorWorker {
   private readonly redisSubscriber: RedisSubscriber;
   private readonly cacheClient: Redis;
   private readonly executionEngine: ExecutionEngine;
+  private readonly safetyService: SafetyService;
+  private readonly healthMonitor: HealthMonitor;
+  private readonly runtimeConfigSubscriber: RuntimeConfigSubscriber;
   private readonly logger: ReturnType<typeof createLogger>;
 
   constructor(
     config: ExecutionConfig,
     cacheClient: Redis,
-    executionEngine: ExecutionEngine
+    executionEngine: ExecutionEngine,
+    redisClients: Awaited<ReturnType<typeof createRedisClients>>,
   ) {
     this.config = config;
     this.cacheClient = cacheClient;
     this.redisSubscriber = new RedisSubscriber();
     this.executionEngine = executionEngine;
     this.logger = createLogger('executor-worker');
+
+    const failureTracker = new FailureTracker(cacheClient);
+    const alertPublisher = new AlertPublisher(redisClients.publisher as Redis);
+    this.healthMonitor = new HealthMonitor(
+      cacheClient,
+      (chainId, unhealthy) => this.safetyService?.setChainHealthy(chainId, unhealthy)
+    );
+    this.runtimeConfigSubscriber = new RuntimeConfigSubscriber(
+      redisClients.subscriber as Redis,
+      (paused) => this.safetyService?.setGlobalPaused(paused)
+    );
+    this.safetyService = new SafetyService(
+      config,
+      failureTracker,
+      this.healthMonitor,
+      alertPublisher,
+      false
+    );
   }
 
   async start(): Promise<void> {
@@ -62,6 +89,10 @@ export class ExecutorWorker {
     if (health.status === 'unhealthy') {
       throw new Error(`Redis health check failed: ${JSON.stringify(health.details)}`);
     }
+
+    await this.runtimeConfigSubscriber.start();
+    this.healthMonitor.start();
+    await this.safetyService.recoverFromRedis();
 
     await this.redisSubscriber.subscribe(
       REDIS_CHANNELS.routeDiscovered,
@@ -93,6 +124,15 @@ export class ExecutorWorker {
       return;
     }
 
+    const safetyDecision = await this.safetyService.shouldExecute(route);
+    if (!safetyDecision.allowed) {
+      this.logger.info(
+        { routeId: route.id, reason: safetyDecision.reason },
+        'Safety check blocked execution'
+      );
+      return;
+    }
+
     const strategy = this.findMatchingStrategy(route);
     if (!strategy) {
       this.logger.debug({ routeId: route.id }, 'No matching strategy');
@@ -101,6 +141,7 @@ export class ExecutorWorker {
 
     try {
       const result = await this.executionEngine.execute(route, strategy);
+      await this.safetyService.recordResult(route.chainId, result);
       this.logger.info(
         { routeId: route.id, status: result.status, reason: result.reason },
         'Execution complete'
@@ -121,6 +162,8 @@ export class ExecutorWorker {
   }
 
   async stop(): Promise<void> {
+    this.healthMonitor.stop();
+    await this.runtimeConfigSubscriber.close();
     await this.redisSubscriber.close();
     this.logger.info('Executor worker stopped');
   }
@@ -176,7 +219,7 @@ async function main(): Promise<void> {
 
   await executionEngine.initialize();
 
-  const worker = new ExecutorWorker(config, cacheClient, executionEngine);
+  const worker = new ExecutorWorker(config, cacheClient, executionEngine, redisClients);
 
   process.on('SIGINT', async () => {
     await worker.stop();

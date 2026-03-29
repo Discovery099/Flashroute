@@ -14,6 +14,7 @@ export interface SafetyDecision {
 export class SafetyService {
   private readonly logger: ReturnType<typeof createLogger>;
   private autoPausedChains = new Set<number>();
+  private unhealthyChains = new Set<number>();
 
   constructor(
     private readonly config: ExecutionConfig,
@@ -30,6 +31,16 @@ export class SafetyService {
     this.logger.info({ paused }, 'Global pause state updated');
   }
 
+  setChainHealthy(chainId: number, unhealthy: boolean): void {
+    if (unhealthy) {
+      this.unhealthyChains.add(chainId);
+      this.logger.warn({ chainId }, 'Chain marked unhealthy via health monitor');
+    } else {
+      this.unhealthyChains.delete(chainId);
+      this.logger.debug({ chainId }, 'Chain health restored via health monitor');
+    }
+  }
+
   async shouldExecute(route: { id: string; chainId: number; simulatedAt: number }): Promise<SafetyDecision> {
     const chainId = route.chainId;
 
@@ -41,6 +52,10 @@ export class SafetyService {
     }
 
     if (!this.healthMonitor.isChainHealthy(chainId)) {
+      return { allowed: false, reason: 'chain_unhealthy', chainId };
+    }
+
+    if (this.unhealthyChains.has(chainId)) {
       return { allowed: false, reason: 'chain_unhealthy', chainId };
     }
 
