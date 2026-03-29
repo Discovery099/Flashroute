@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ExecutionEngine, type TradeService } from './execution-engine';
+import { ExecutionEngine } from './execution-engine';
 
 describe('ExecutionEngine', () => {
   let mockConfig: any;
   let mockNonceManager: any;
   let mockTxTracker: any;
-  let mockTradeService: TradeService;
+  let mockTradeQueuePublisher: any;
   let mockRedis: any;
   let engine: ExecutionEngine;
 
@@ -41,9 +41,9 @@ describe('ExecutionEngine', () => {
       waitForReceipt: vi.fn(),
     };
 
-    mockTradeService = {
-      createTrade: vi.fn().mockResolvedValue({ id: 'trade-1' }),
-      updateTrade: vi.fn(),
+    mockTradeQueuePublisher = {
+      publishCreateTrade: vi.fn().mockResolvedValue('trade-1'),
+      publishUpdateTrade: vi.fn(),
     };
 
     mockRedis = {
@@ -55,7 +55,7 @@ describe('ExecutionEngine', () => {
       mockConfig,
       mockNonceManager,
       mockTxTracker,
-      mockTradeService,
+      mockTradeQueuePublisher,
       mockRedis,
       { 1: 'https://eth.llamarpc.com' }
     );
@@ -63,7 +63,7 @@ describe('ExecutionEngine', () => {
 
   it('skips when EXECUTION_ENABLED=false', async () => {
     mockConfig.enabled = false;
-    const eng = new ExecutionEngine(mockConfig, mockNonceManager, mockTxTracker, mockTradeService, mockRedis, { 1: 'https://eth.llamarpc.com' });
+    const eng = new ExecutionEngine(mockConfig, mockNonceManager, mockTxTracker, mockTradeQueuePublisher, mockRedis, { 1: 'https://eth.llamarpc.com' });
     const result = await eng.execute(mockRoute as any, mockStrategy as any);
     expect(result.status).toBe('skipped');
   });
