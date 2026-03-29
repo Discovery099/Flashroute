@@ -29,10 +29,6 @@ export class FailureTracker {
 
     if (result === 'included') {
       state.consecutiveFailures = 0;
-      state.consecutiveDrift = 0;
-      state.isPaused = false;
-      state.pausedAt = undefined;
-      state.reason = undefined;
     } else {
       state.consecutiveFailures += 1;
       if (state.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
@@ -48,15 +44,12 @@ export class FailureTracker {
 
   async recordDrift(chainId: number, actualProfit: bigint): Promise<void> {
     const lossThreshold = BigInt(DRIFT_LOSS_THRESHOLD_USD * 1_000_000);
-    if (actualProfit >= 0n || actualProfit > -lossThreshold) {
+    if (actualProfit >= 0n || actualProfit >= -lossThreshold) {
       return;
     }
 
     const key = `${PAUSE_KEY_PREFIX}${chainId}`;
-    const existing = await this.redis.get(key);
-    const state: ChainFailureState = existing
-      ? JSON.parse(existing)
-      : this.cache.get(chainId) ?? this.emptyState();
+    const state = this.cache.get(chainId) ?? this.emptyState();
 
     state.consecutiveDrift += 1;
     if (state.consecutiveDrift >= MAX_CONSECUTIVE_DRIFT) {

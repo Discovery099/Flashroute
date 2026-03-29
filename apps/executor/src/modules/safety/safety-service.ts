@@ -75,7 +75,6 @@ export class SafetyService {
 
   async recordResult(chainId: number, result: ExecutionResult, actualProfit?: bigint): Promise<void> {
     if (result.status === 'included') {
-      await this.failureTracker.record(chainId, 'included');
       if (actualProfit !== undefined) {
         if (actualProfit < 0n) {
           await this.failureTracker.recordDrift(chainId, actualProfit);
@@ -83,6 +82,7 @@ export class SafetyService {
           await this.failureTracker.recordNonNegativeProfit(chainId);
         }
       }
+      await this.failureTracker.record(chainId, 'included');
     } else if (result.status === 'reverted' || result.status === 'failed') {
       await this.failureTracker.record(chainId, result.status);
     }
