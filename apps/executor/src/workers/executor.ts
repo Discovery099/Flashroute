@@ -1,5 +1,6 @@
 import Redis from 'ioredis';
 import { RedisSubscriber } from '../channels/redis-subscriber';
+import { TradeQueuePublisher } from '../channels/trade-queue-publisher';
 import { NonceManager } from '../modules/execution/nonce-manager';
 import { TxTracker } from '../modules/execution/tx-tracker';
 import { ExecutionEngine } from '../services/execution-engine';
@@ -46,6 +47,7 @@ export class ExecutorWorker {
   private readonly redisSubscriber: RedisSubscriber;
   private readonly cacheClient: Redis;
   private readonly executionEngine: ExecutionEngine;
+  private readonly tradeQueuePublisher: TradeQueuePublisher;
   private readonly safetyService: SafetyService;
   private readonly healthMonitor: HealthMonitor;
   private readonly runtimeConfigSubscriber: RuntimeConfigSubscriber;
@@ -61,6 +63,7 @@ export class ExecutorWorker {
     this.cacheClient = cacheClient;
     this.redisSubscriber = new RedisSubscriber();
     this.executionEngine = executionEngine;
+    this.tradeQueuePublisher = new TradeQueuePublisher();
     this.logger = createLogger('executor-worker');
 
     const failureTracker = new FailureTracker(cacheClient);
@@ -195,21 +198,15 @@ async function main(): Promise<void> {
     (url, options) => new Redis(url, options)
   );
 
+  const tradeQueuePublisher = new TradeQueuePublisher();
+
   const executionEngine = new ExecutionEngine(
     config,
     new NonceManager(cacheClient),
     new TxTracker(new ethers.JsonRpcProvider(
       process.env.ETHEREUM_RPC_URL ?? 'http://localhost:8545'
     )),
-    {
-      createTrade: async (payload: Record<string, unknown>) => {
-        console.log('[TradeService] createTrade:', payload);
-        return { id: `trade-${Date.now()}` };
-      },
-      updateTrade: async (tradeId: string, payload: Record<string, unknown>) => {
-        console.log(`[TradeService] updateTrade ${tradeId}:`, payload);
-      },
-    },
+    tradeQueuePublisher,
     cacheClient,
     {
       1: process.env.ETHEREUM_RPC_URL ?? 'http://localhost:8545',

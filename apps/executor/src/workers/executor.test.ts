@@ -35,6 +35,7 @@ describe('ExecutorWorker', () => {
   let mockConfig: any;
   let mockCacheClient: any;
   let mockExecutionEngine: any;
+  let mockRedisClients: any;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -52,6 +53,7 @@ describe('ExecutorWorker', () => {
 
     mockCacheClient = {
       ping: vi.fn().mockResolvedValue('PONG'),
+      keys: vi.fn().mockResolvedValue([]),
     };
 
     mockExecutionEngine = {
@@ -62,10 +64,21 @@ describe('ExecutorWorker', () => {
         getBlockNumber: vi.fn().mockResolvedValue(100),
       }),
     };
+
+    mockRedisClients = {
+      publisher: {
+        publish: vi.fn().mockResolvedValue(1),
+      },
+      subscriber: {
+        subscribe: vi.fn().mockResolvedValue('OK'),
+        on: vi.fn(),
+        quit: vi.fn().mockResolvedValue(undefined),
+      },
+    };
   });
 
   it('subscribes to fr:route:discovered on startup', async () => {
-    const worker = new ExecutorWorker(mockConfig, mockCacheClient, mockExecutionEngine);
+    const worker = new ExecutorWorker(mockConfig, mockCacheClient, mockExecutionEngine, mockRedisClients);
     await worker.start();
 
     expect(mockSubscribe).toHaveBeenCalledWith(
@@ -76,7 +89,7 @@ describe('ExecutorWorker', () => {
 
   it('logs and skips when EXECUTION_ENABLED=false', async () => {
     mockConfig.enabled = false;
-    const worker = new ExecutorWorker(mockConfig, mockCacheClient, mockExecutionEngine);
+    const worker = new ExecutorWorker(mockConfig, mockCacheClient, mockExecutionEngine, mockRedisClients);
 
     const route = {
       id: 'route-1',
@@ -93,7 +106,7 @@ describe('ExecutorWorker', () => {
   });
 
   it('parses and executes valid route messages', async () => {
-    const worker = new ExecutorWorker(mockConfig, mockCacheClient, mockExecutionEngine);
+    const worker = new ExecutorWorker(mockConfig, mockCacheClient, mockExecutionEngine, mockRedisClients);
 
     mockExecutionEngine.execute.mockResolvedValue({
       status: 'included',
@@ -130,7 +143,7 @@ describe('ExecutorWorker', () => {
   });
 
   it('skips execution when route message is invalid JSON', async () => {
-    const worker = new ExecutorWorker(mockConfig, mockCacheClient, mockExecutionEngine);
+    const worker = new ExecutorWorker(mockConfig, mockCacheClient, mockExecutionEngine, mockRedisClients);
 
     await worker.handleRouteDiscovered('not valid json');
 
@@ -138,7 +151,7 @@ describe('ExecutorWorker', () => {
   });
 
   it('stops cleanly', async () => {
-    const worker = new ExecutorWorker(mockConfig, mockCacheClient, mockExecutionEngine);
+    const worker = new ExecutorWorker(mockConfig, mockCacheClient, mockExecutionEngine, mockRedisClients);
     await worker.stop();
 
     expect(mockQuit).toHaveBeenCalled();

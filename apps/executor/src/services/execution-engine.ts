@@ -8,6 +8,7 @@ import { TxTracker } from '../modules/execution/tx-tracker';
 import { encodeRouteParams, type RouteParamsStruct } from '../modules/execution/transaction-builder';
 import type { ExecutionConfig } from '../config/execution.config';
 import { createLogger } from '@flashroute/shared';
+import { TradeQueuePublisher } from '../channels/trade-queue-publisher';
 
 export interface ExecutionDecision {
   approved: boolean;
@@ -37,7 +38,7 @@ export class ExecutionEngine {
     private readonly config: ExecutionConfig,
     private readonly nonceManager: NonceManager,
     private readonly txTracker: TxTracker,
-    private readonly tradeService: TradeService,
+    private readonly tradeQueuePublisher: TradeQueuePublisher,
     private readonly redis: Redis,
     private readonly rpcEndpoints: Record<number, string>
   ) {
@@ -175,7 +176,7 @@ export class ExecutionEngine {
       const hashMap = await relay.submitWithTargets(targets, signedTx);
       const primaryHash = hashMap.get(currentBlock + 1) ?? hashMap.get(currentBlock + 2)!;
 
-      const trade = await this.tradeService.createTrade({
+      const tradeId = await this.tradeQueuePublisher.publishCreateTrade({
         strategyId: strategy.id,
         chainId,
         status: relay instanceof FlashbotsRelay ? 'submitted_private' : 'submitted_public',
@@ -190,19 +191,19 @@ export class ExecutionEngine {
         : await relay.waitForInclusion(primaryHash, 25);
 
       if (relayResult.success) {
-        await this.tradeService.updateTrade(trade.id, {
+        await this.tradeQueuePublisher.publishUpdateTrade(tradeId, {
           status: 'included',
           txHash: relayResult.txHash,
           blockNumber: relayResult.blockNumber,
         });
-        return { tradeId: trade.id, txHash: relayResult.txHash, status: 'included' };
+        return { tradeId, txHash: relayResult.txHash, status: 'included' };
       } else {
         const isOnChainRevert = relayResult.reason === 'onchain_revert';
-        await this.tradeService.updateTrade(trade.id, {
+        await this.tradeQueuePublisher.publishUpdateTrade(tradeId, {
           status: isOnChainRevert ? 'reverted' : 'failed',
           errorMessage: relayResult.error ?? relayResult.reason,
         });
-        return { tradeId: trade.id, status: isOnChainRevert ? 'reverted' : 'failed', reason: relayResult.reason };
+        return { tradeId, status: isOnChainRevert ? 'reverted' : 'failed', reason: relayResult.reason };
       }
     } catch (err) {
       this.logger.error({ err, routeId: route.id }, 'Execution error');
