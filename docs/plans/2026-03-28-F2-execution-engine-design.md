@@ -7,7 +7,7 @@ Phase F1 deployed the `FlashRouteExecutor` smart contract on Ethereum and Arbitr
 ## Decisions Made
 
 - **Web3 library**: ethers v6 (per 01-ARCHITECTURE.md)
-- **Flashbots SDK**: @flashbots/sdk (maintained by Flashbots, ethers v6 compatible)
+- **Flashbots SDK**: @flashbots/ethers-provider-bundle (NOT @flashbots/sdk — that package does not exist)
 - **Entry point**: Worker process subscribing to Redis; manual triggers via admin quick actions publishing to same channel
 - **EXECUTION_ENABLED**: When false, log opportunities without executing
 - **Chain RPC URLs**: Reuse `@flashroute/config` chain configs
@@ -94,7 +94,7 @@ Use `abi.encode()` from ethers — no manual packing needed.
 
 ### Relay Strategy
 
-**Ethereum (mainnet)** — `@flashbots/sdk`:
+**Ethereum (mainnet)** — `@flashbots/ethers-provider-bundle`:
 1. Simulate bundle: `flashbotsProvider.simulate(bundle, targetBlock)`
 2. If profitable: `sendBundle(bundle, targetBlock)` for N+1 and N+2
 3. Poll `getBundleStatsV2(bundleHash)` every block for 3 blocks
@@ -249,7 +249,7 @@ BUNDLE_TARGET_BLOCKS=n+1,n+2            # submission targets
 ```json
 {
   "ethers": "^6.0.0",
-  "@flashbots/sdk": "^4.0.0",
+  "@flashbots/ethers-provider-bundle": "^1.0.0",
   "ioredis": "^5.4.0"
 }
 ```

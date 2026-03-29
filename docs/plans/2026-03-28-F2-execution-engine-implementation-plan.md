@@ -6,7 +6,7 @@
 
 **Architecture:** Worker process in `apps/executor/src/workers/executor.ts` that orchestrates: route received → simulate (existing) → build RouteParams → sign → submit via relay → track → record result. Gated behind `EXECUTION_ENABLED`.
 
-**Tech Stack:** ethers v6, @flashbots/sdk, ioredis, pino (via @flashroute/shared)
+**Tech Stack:** ethers v6, @flashbots/ethers-provider-bundle (NOT @flashbots/sdk — that package does not exist), ioredis, pino (via @flashroute/shared)
 
 ---
 
@@ -37,14 +37,14 @@ SwapHop: (uint8, address, address, address, uint256, uint256)
 
 ```bash
 cd apps/executor
-pnpm add ethers @flashbots/sdk ioredis
+pnpm add ethers @flashbots/ethers-provider-bundle ioredis
 ```
 
 **Step 2: Commit**
 
 ```bash
 git add apps/executor/package.json
-git commit -m "feat(executor): add ethers v6, @flashbots/sdk, ioredis"
+git commit -m "feat(executor): add ethers v6, @flashbots/ethers-provider-bundle, ioredis"
 ```
 
 ---
@@ -721,7 +721,7 @@ export interface IRelayProvider {
 ```typescript
 // apps/executor/src/modules/execution/relay/flashbots-relay.ts
 
-import { FlashbotsBundleProvider, FlashbotsBundleRawTx } from '@flashbots/sdk';
+import { FlashbotsBundleProvider, FlashbotsBundleRawTransaction } from '@flashbots/ethers-provider-bundle';
 import { ethers } from 'ethers';
 import type { IRelayProvider, BundleResult, SubmissionTarget } from './relay-provider';
 import { Logger } from '@flashroute/shared';
@@ -760,7 +760,7 @@ export class FlashbotsRelay implements IRelayProvider {
     targetBlock: number,
     _coinbase: string
   ): Promise<{ success: boolean; reason?: string }> {
-    const bundle: FlashbotsBundleRawTx[] = [{ signedTransaction: signedTx }];
+    const bundle: FlashbotsBundleRawTransaction[] = [{ signedTransaction: signedTx }];
 
     try {
       const simulation = await this.flashbotsProvider.simulate(bundle, targetBlock);
@@ -783,7 +783,7 @@ export class FlashbotsRelay implements IRelayProvider {
   }
 
   async submit(targetBlock: number, signedTx: string): Promise<string> {
-    const bundle: FlashbotsBundleRawTx[] = [{ signedTransaction: signedTx }];
+    const bundle: FlashbotsBundleRawTransaction[] = [{ signedTransaction: signedTx }];
     const response = await this.flashbotsProvider.sendBundle(bundle, targetBlock);
 
     if (!response.bundleHash) {
