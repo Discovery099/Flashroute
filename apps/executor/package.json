@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@flashroute/blockchain": "workspace:*",
-    "@flashroute/shared": "workspace:*"
+    "@flashroute/shared": "workspace:*",
+    "ethers": "^6.16.0",
+    "ioredis": "^5.4.2"
   }
 }
