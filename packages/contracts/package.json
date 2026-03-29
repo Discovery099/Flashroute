@@ -4,11 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "node -e \"console.log('contracts lint placeholder')\"",
-    "typecheck": "node -e \"console.log('contracts typecheck placeholder')\"",
-    "test": "node -e \"console.log('contracts test placeholder')\"",
-    "build": "node -e \"console.log('contracts build placeholder')\"",
-    "dev": "node -e \"console.log('contracts dev placeholder')\""
+    "build": "forge build",
+    "test": "forge test",
+    "deploy:ethereum": "forge script script/Deploy.s.sol:Deploy --rpc-url mainnet --broadcast --verify",
+    "deploy:arbitrum": "forge script script/DeployArbitrum.s.sol:DeployArbitrum --rpc-url arbitrum --broadcast --verify",
+    "verify:ethereum": "forge verify-contract CONTRACT_ADDRESS src/FlashRouteExecutor.sol:FlashRouteExecutor --chain-id 1",
+    "verify:arbitrum": "forge verify-contract CONTRACT_ADDRESS src/FlashRouteExecutor.sol:FlashRouteExecutor --chain-id 42161",
+    "gas-report": "forge test --gas-report"
   },
   "devDependencies": {
     "@openzeppelin/contracts": "^5.0.0"
