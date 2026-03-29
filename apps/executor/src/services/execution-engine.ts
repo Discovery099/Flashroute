@@ -214,6 +214,10 @@ export class ExecutionEngine {
     }
   }
 
+  getProvider(chainId: number): ethers.JsonRpcProvider | undefined {
+    return this.providers.get(chainId);
+  }
+
   private getExecutorAddress(chainId: number): string {
     const addresses: Record<number, string> = {
       1: '0x0000000000000000000000000000000000000001',

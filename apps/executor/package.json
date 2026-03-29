@@ -11,7 +11,9 @@
     "dev": "node -e \"console.log('executor dev placeholder')\""
   },
   "dependencies": {
+    "@flashbots/ethers-provider-bundle": "^1.0.0",
     "@flashroute/blockchain": "workspace:*",
+    "@flashroute/db": "workspace:*",
     "@flashroute/shared": "workspace:*",
     "ethers": "^6.16.0",
     "ioredis": "^5.4.2"
