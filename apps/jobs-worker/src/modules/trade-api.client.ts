@@ -1,4 +1,6 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, isAxiosError } from 'axios';
+
+const INTERNAL_TRADES_PATH = '/internal/trades';
 
 export class TradeApiClient {
   private readonly client: AxiosInstance;
@@ -8,14 +10,28 @@ export class TradeApiClient {
   }
 
   async createTrade(payload: Record<string, unknown>): Promise<{ id: string }> {
-    const response = await this.client.post('/internal/trades', payload);
-    return { id: response.data.trade.id };
+    try {
+      const response = await this.client.post(INTERNAL_TRADES_PATH, payload);
+      return { id: response.data.trade.id };
+    } catch (err) {
+      if (isAxiosError(err)) {
+        throw new Error(`TradeApiClient.createTrade failed: ${err.message}`);
+      }
+      throw err;
+    }
   }
 
   async updateTradeStatus(
     tradeId: string,
     payload: Record<string, unknown>
   ): Promise<void> {
-    await this.client.patch(`/internal/trades/${tradeId}/status`, payload);
+    try {
+      await this.client.patch(`${INTERNAL_TRADES_PATH}/${tradeId}/status`, payload);
+    } catch (err) {
+      if (isAxiosError(err)) {
+        throw new Error(`TradeApiClient.updateTradeStatus(${tradeId}) failed: ${err.message}`);
+      }
+      throw err;
+    }
   }
 }
