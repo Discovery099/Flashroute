@@ -1,0 +1,216 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" fill="none">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0f1e"/>
+      <stop offset="100%" style="stop-color:#111827"/>
+    </linearGradient>
+    <linearGradient id="cyan3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4"/>
+      <stop offset="100%" style="stop-color:#22d3ee"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="700" rx="12" fill="url(#bg3)"/>
+  <rect width="1200" height="700" rx="12" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Title bar -->
+  <rect width="1200" height="36" rx="12" fill="#0f172a"/>
+  <rect y="24" width="1200" height="12" fill="#0f172a"/>
+  <circle cx="20" cy="18" r="6" fill="#ef4444"/>
+  <circle cx="40" cy="18" r="6" fill="#f59e0b"/>
+  <circle cx="60" cy="18" r="6" fill="#22c55e"/>
+  <text x="600" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#64748b" text-anchor="middle">flashroute — create strategy</text>
+
+  <!-- Sidebar -->
+  <rect x="0" y="36" width="200" height="664" fill="#0f172a"/>
+  <rect x="197" y="36" width="1" height="664" fill="#1e293b"/>
+  <text x="20" y="65" font-family="ui-monospace, monospace" font-size="14" font-weight="700" fill="#f0f9ff">FlashRoute</text>
+
+  <g transform="translate(0, 80)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Dashboard</text>
+  </g>
+
+  <g transform="translate(0, 116)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Opportunities</text>
+  </g>
+
+  <g transform="translate(0, 152)">
+    <rect x="0" y="0" width="197" height="36" fill="#1e293b"/>
+    <rect x="0" y="0" width="3" height="36" fill="url(#cyan3)"/>
+    <circle cx="24" cy="18" r="4" fill="#06b6d4"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">Strategies</text>
+  </g>
+
+  <g transform="translate(0, 188)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Trades</text>
+  </g>
+
+  <g transform="translate(0, 224)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Analytics</text>
+  </g>
+
+  <text x="16" y="295" font-family="ui-monospace, monospace" font-size="9" fill="#475569" letter-spacing="1">SYSTEM</text>
+
+  <g transform="translate(0, 308)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Settings</text>
+  </g>
+
+  <!-- Main content -->
+  <text x="230" y="75" font-family="ui-monospace, monospace" font-size="18" font-weight="600" fill="#f0f9ff">Create Strategy</text>
+
+  <!-- Form container -->
+  <g transform="translate(230, 100)">
+    <!-- Strategy Name -->
+    <rect width="600" height="72" rx="8" fill="#1e293b"/>
+    <text x="16" y="24" font-family="ui-monospace, monospace" font-size="11" font-weight="500" fill="#f0f9ff">Strategy Name</text>
+    <rect x="16" y="32" width="568" height="32" rx="6" fill="#0f172a" stroke="#1e293b"/>
+    <text x="28" y="52" font-family="ui-monospace, monospace" font-size="11" fill="#475569">ETH Multi-hop Arbitrage</text>
+
+    <!-- Two column: Chain + Min Profit -->
+    <g transform="translate(0, 84)">
+      <rect width="280" height="72" rx="8" fill="#1e293b"/>
+      <text x="16" y="24" font-family="ui-monospace, monospace" font-size="11" font-weight="500" fill="#f0f9ff">Chain</text>
+      <rect x="16" y="32" width="248" height="32" rx="6" fill="#0f172a" stroke="#06b6d4" stroke-width="1"/>
+      <text x="28" y="52" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">Arbitrum + Ethereum</text>
+    </g>
+
+    <g transform="translate(296, 84)">
+      <rect width="280" height="72" rx="8" fill="#1e293b"/>
+      <text x="16" y="24" font-family="ui-monospace, monospace" font-size="11" font-weight="500" fill="#f0f9ff">Min Profit Threshold</text>
+      <rect x="16" y="32" width="120" height="32" rx="6" fill="#0f172a" stroke="#06b6d4" stroke-width="1"/>
+      <text x="28" y="52" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">$50</text>
+      <text x="144" y="52" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">USD per trade</text>
+    </g>
+
+    <!-- DEX Allowlist -->
+    <g transform="translate(0, 168)">
+      <rect width="600" height="160" rx="8" fill="#1e293b"/>
+      <text x="16" y="24" font-family="ui-monospace, monospace" font-size="11" font-weight="500" fill="#f0f9ff">DEX Allowlist</text>
+      <text x="16" y="40" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Select which DEXes this strategy can use</text>
+
+      <g transform="translate(16, 52)">
+        <rect width="90" height="28" rx="14" fill="#06b6d4" opacity="0.2"/>
+        <rect width="90" height="28" rx="14" stroke="#06b6d4" stroke-width="1"/>
+        <circle cx="12" cy="14" r="5" fill="#06b6d4"/>
+        <text x="24" y="18" font-family="ui-monospace, monospace" font-size="10" fill="#06b6d4">Uniswap v3</text>
+      </g>
+      <g transform="translate(114, 52)">
+        <rect width="90" height="28" rx="14" fill="#06b6d4" opacity="0.2"/>
+        <rect width="90" height="28" rx="14" stroke="#06b6d4" stroke-width="1"/>
+        <circle cx="12" cy="14" r="5" fill="#06b6d4"/>
+        <text x="24" y="18" font-family="ui-monospace, monospace" font-size="10" fill="#06b6d4">Uniswap v2</text>
+      </g>
+      <g transform="translate(212, 52)">
+        <rect width="80" height="28" rx="14" fill="#06b6d4" opacity="0.2"/>
+        <rect width="80" height="28" rx="14" stroke="#06b6d4" stroke-width="1"/>
+        <circle cx="12" cy="14" r="5" fill="#06b6d4"/>
+        <text x="24" y="18" font-family="ui-monospace, monospace" font-size="10" fill="#06b6d4">SushiSwap</text>
+      </g>
+      <g transform="translate(300, 52)">
+        <rect width="70" height="28" rx="14" fill="#0f172a" stroke="#1e293b"/>
+        <circle cx="12" cy="14" r="5" fill="#1e293b"/>
+        <text x="24" y="18" font-family="ui-monospace, monospace" font-size="10" fill="#475569">Curve</text>
+      </g>
+      <g transform="translate(378, 52)">
+        <rect width="78" height="28" rx="14" fill="#0f172a" stroke="#1e293b"/>
+        <circle cx="12" cy="14" r="5" fill="#1e293b"/>
+        <text x="24" y="18" font-family="ui-monospace, monospace" font-size="10" fill="#475569">Balancer</text>
+      </g>
+      <g transform="translate(16, 88)">
+        <rect width="70" height="28" rx="14" fill="#0f172a" stroke="#1e293b"/>
+        <circle cx="12" cy="14" r="5" fill="#1e293b"/>
+        <text x="24" y="18" font-family="ui-monospace, monospace" font-size="10" fill="#475569">dYdX</text>
+      </g>
+      <g transform="translate(94, 88)">
+        <rect width="72" height="28" rx="14" fill="#0f172a" stroke="#1e293b"/>
+        <circle cx="12" cy="14" r="5" fill="#1e293b"/>
+        <text x="24" y="18" font-family="ui-monospace, monospace" font-size="10" fill="#475569">Aave</text>
+      </g>
+    </g>
+
+    <!-- Gas + Risk settings -->
+    <g transform="translate(0, 340)">
+      <rect width="600" height="140" rx="8" fill="#1e293b"/>
+      <text x="16" y="24" font-family="ui-monospace, monospace" font-size="11" font-weight="500" fill="#f0f9ff">Execution Controls</text>
+
+      <g transform="translate(16, 44)">
+        <text x="0" y="14" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Max Gas Price (gwei)</text>
+        <rect x="160" y="0" width="100" height="28" rx="6" fill="#0f172a" stroke="#06b6d4" stroke-width="1"/>
+        <text x="172" y="18" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">200</text>
+      </g>
+
+      <g transform="translate(300, 44)">
+        <text x="0" y="14" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Max Hops</text>
+        <rect x="90" y="0" width="60" height="28" rx="6" fill="#0f172a" stroke="#06b6d4" stroke-width="1"/>
+        <text x="102" y="18" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">3</text>
+      </g>
+
+      <g transform="translate(16, 84)">
+        <text x="0" y="14" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Risk Buffer (%)</text>
+        <rect x="120" y="0" width="80" height="28" rx="6" fill="#0f172a" stroke="#06b6d4" stroke-width="1"/>
+        <text x="132" y="18" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">5.0%</text>
+      </g>
+
+      <g transform="translate(300, 84)">
+        <text x="0" y="14" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Max Concurrent</text>
+        <rect x="130" y="0" width="60" height="28" rx="6" fill="#0f172a" stroke="#06b6d4" stroke-width="1"/>
+        <text x="142" y="18" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">2</text>
+      </g>
+    </g>
+
+    <!-- Safety toggle -->
+    <g transform="translate(0, 492)">
+      <rect width="600" height="60" rx="8" fill="#1e293b"/>
+      <rect x="16" y="16" width="36" height="20" rx="10" fill="#0f172a"/>
+      <circle cx="24" cy="26" r="7" fill="#475569"/>
+      <text x="64" y="28" font-family="ui-monospace, monospace" font-size="11" fill="#f0f9ff">Execution Enabled</text>
+      <text x="64" y="44" font-family="ui-monospace, monospace" font-size="10" fill="#ef4444">Disabled — monitoring only</text>
+    </g>
+
+    <!-- Action buttons -->
+    <g transform="translate(0, 564)">
+      <rect width="120" height="40" rx="8" fill="#06b6d4"/>
+      <text x="32" y="26" font-family="ui-monospace, monospace" font-size="12" font-weight="600" fill="#0a0f1e">Create</text>
+      <rect x="136" y="0" width="120" height="40" rx="8" fill="#1e293b"/>
+      <text x="168" y="26" font-family="ui-monospace, monospace" font-size="12" fill="#94a3b8">Cancel</text>
+    </g>
+  </g>
+
+  <!-- Right panel: help -->
+  <g transform="translate(850, 100)">
+    <rect width="220" height="504" rx="8" fill="#1e293b"/>
+    <text x="16" y="28" font-family="ui-monospace, monospace" font-size="11" font-weight="500" fill="#f0f9ff">Configuration Guide</text>
+
+    <text x="16" y="56" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4" letter-spacing="1">STRATEGY NAME</text>
+    <text x="16" y="72" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">A unique name for this strategy. You'll use this to identify it in the dashboard.</text>
+
+    <text x="16" y="106" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4" letter-spacing="1">MIN PROFIT THRESHOLD</text>
+    <text x="16" y="122" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Only execute routes that profit more than this amount. Higher values mean fewer but more profitable trades.</text>
+
+    <text x="16" y="172" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4" letter-spacing="1">RISK BUFFER</text>
+    <text x="16" y="188" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Deduct this percentage from simulated profit. If result &lt; min threshold, route is skipped.</text>
+
+    <text x="16" y="238" font-family="ui-monospace, monospace" font-size="9" fill="#f59e0b" letter-spacing="1">EXECUTION SAFETY</text>
+    <rect x="16" y="250" width="188" height="48" rx="6" fill="#f59e0b" opacity="0.1"/>
+    <text x="28" y="268" font-family="ui-monospace, monospace" font-size="10" fill="#fbbf24">Execution is disabled by default.</text>
+    <text x="28" y="284" font-family="ui-monospace, monospace" font-size="10" fill="#fbbf24">Review the safety guide before enabling.</text>
+
+    <text x="16" y="330" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4" letter-spacing="1">NEXT STEPS</text>
+    <text x="16" y="346" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">1. Create strategy</text>
+    <text x="16" y="362" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">2. Backtest with simulation</text>
+    <text x="16" y="378" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">3. Review estimated gas costs</text>
+    <text x="16" y="394" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">4. Enable execution when ready</text>
+  </g>
+
+  <rect x="0" y="699" width="1200" height="1" fill="url(#cyan3)" opacity="0.2"/>
+</svg>

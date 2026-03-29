@@ -1,35 +1,39 @@
-# Screenshots
+# Screenshots & Mockups
 
-Add your screenshots here before pushing to production or publishing.
+SVG mockups representing the FlashRoute UI in dark theme. These illustrations showcase the full application design for documentation and GitHub.
 
-| Filename | Page | Notes |
-|----------|------|-------|
-| `dashboard-dark.png` | Dashboard | Capture at 1920×1080, dark theme. Show KPI cards, profit trend chart, recent trades panel. |
-| `opportunities-live.png` | Opportunities | Show live opportunities with chain filter active, profit column sorted descending. |
-| `strategy-form.png` | Strategy Create | Show the strategy form with DEXes selected, risk buffer configured. |
-| `analytics-charts.png` | Analytics | Show profit/volume trend chart, success rate gauge, gas efficiency breakdown. |
-| `billing-page.png` | Billing | Show plan comparison table with the current plan highlighted. |
+| Filename | Page | Description |
+|----------|------|-------------|
+| `header.svg` | README banner | FlashRoute logo with version badges and tech stack indicators |
+| `dashboard.svg` | Dashboard | KPI cards, profit trend chart, recent trades, active strategies |
+| `opportunities.svg` | Live Opportunities | Real-time opportunity feed with chain filters, route details panel |
+| `strategy-form.svg` | Strategy Create | DEX allowlist, gas controls, risk buffer, execution toggle |
+| `analytics.svg` | Analytics | Profit/volume trends, success rate gauge, gas efficiency breakdown |
+| `billing.svg` | Billing | Plan comparison table, usage meters, payment method management |
 
-## Recommended Capture Settings
+## Design System
 
-- Resolution: 1920×1080 (or 2560×1440 for retina)
-- Theme: Dark mode
-- Browser: Chromium-based (Chrome, Edge) for consistent font rendering
-- Time: Capture with realistic mock data or after running against testnet/mainnet
+All mockups use the FlashRoute dark theme:
 
-## How to Add
+| Element | Value |
+|---------|-------|
+| Background | `#0a0f1e` → `#111827` gradient |
+| Primary accent | `#06b6d4` (cyan) |
+| Success | `#10b981` (emerald) |
+| Warning | `#f59e0b` (amber) |
+| Font | `ui-monospace, SFMono-Regular, Menlo, Monaco, monospace` |
 
-1. Capture screenshots using your preferred tool
-2. Save them to this directory
-3. Update the paths in `README.md` if you rename them
+## Resolution
+
+All mockups are rendered at **1200×700px** (16:9-ish) — scales cleanly to any size.
 
 ```
 docs/images/
-├── README.md           ← You are here
-├── header.svg          ← FlashRoute logo used in README
-├── dashboard-dark.png
-├── opportunities-live.png
-├── strategy-form.png
-├── analytics-charts.png
-└── billing-page.png
+├── README.md              ← You are here
+├── header.svg             ← README banner (800×160)
+├── dashboard.svg          ← Dashboard mockup (1200×700)
+├── opportunities.svg      ← Opportunities mockup (1200×700)
+├── strategy-form.svg      ← Strategy form mockup (1200×700)
+├── analytics.svg          ← Analytics mockup (1200×700)
+└── billing.svg            ← Billing mockup (1200×700)
 ```

@@ -1,0 +1,265 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" fill="none">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0f1e"/>
+      <stop offset="100%" style="stop-color:#111827"/>
+    </linearGradient>
+    <linearGradient id="cyan2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4"/>
+      <stop offset="100%" style="stop-color:#22d3ee"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="700" rx="12" fill="url(#bg2)"/>
+  <rect width="1200" height="700" rx="12" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Title bar -->
+  <rect width="1200" height="36" rx="12" fill="#0f172a"/>
+  <rect y="24" width="1200" height="12" fill="#0f172a"/>
+  <circle cx="20" cy="18" r="6" fill="#ef4444"/>
+  <circle cx="40" cy="18" r="6" fill="#f59e0b"/>
+  <circle cx="60" cy="18" r="6" fill="#22c55e"/>
+  <text x="600" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#64748b" text-anchor="middle">flashroute — live opportunities</text>
+
+  <!-- Sidebar (same as dashboard) -->
+  <rect x="0" y="36" width="200" height="664" fill="#0f172a"/>
+  <rect x="197" y="36" width="1" height="664" fill="#1e293b"/>
+  <text x="20" y="65" font-family="ui-monospace, monospace" font-size="14" font-weight="700" fill="#f0f9ff">FlashRoute</text>
+
+  <g transform="translate(0, 80)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Dashboard</text>
+  </g>
+
+  <g transform="translate(0, 116)">
+    <rect x="0" y="0" width="197" height="36" fill="#1e293b"/>
+    <rect x="0" y="0" width="3" height="36" fill="url(#cyan2)"/>
+    <circle cx="24" cy="18" r="4" fill="#06b6d4"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">Opportunities</text>
+  </g>
+
+  <g transform="translate(0, 152)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Strategies</text>
+  </g>
+
+  <g transform="translate(0, 188)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Trades</text>
+  </g>
+
+  <g transform="translate(0, 224)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Analytics</text>
+  </g>
+
+  <text x="16" y="295" font-family="ui-monospace, monospace" font-size="9" fill="#475569" letter-spacing="1">SYSTEM</text>
+
+  <g transform="translate(0, 308)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Settings</text>
+  </g>
+
+  <!-- Main content -->
+  <text x="230" y="75" font-family="ui-monospace, monospace" font-size="18" font-weight="600" fill="#f0f9ff">Live Opportunities</text>
+
+  <!-- Live indicator -->
+  <g transform="translate(880, 58)">
+    <rect x="0" y="0" width="90" height="24" rx="12" fill="#10b981" opacity="0.15"/>
+    <circle cx="12" cy="12" r="5" fill="#10b981" class="animate-pulse"/>
+    <text x="24" y="16" font-family="ui-monospace, monospace" font-size="10" fill="#10b981">● LIVE</text>
+  </g>
+
+  <!-- Filter bar -->
+  <g transform="translate(230, 95)">
+    <rect width="740" height="44" rx="8" fill="#1e293b"/>
+
+    <!-- Chain filter buttons -->
+    <rect x="12" y="10" width="64" height="24" rx="12" fill="#06b6d4" opacity="0.2"/>
+    <text x="26" y="26" font-family="ui-monospace, monospace" font-size="10" fill="#06b6d4">All Chains</text>
+
+    <rect x="84" y="10" width="72" height="24" rx="12" fill="#0f172a"/>
+    <text x="98" y="26" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Ethereum</text>
+
+    <rect x="164" y="10" width="72" height="24" rx="12" fill="#0f172a"/>
+    <text x="178" y="26" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Arbitrum</text>
+
+    <rect x="244" y="10" width="56" height="24" rx="12" fill="#0f172a"/>
+    <text x="256" y="26" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Base</text>
+
+    <!-- Sort -->
+    <text x="540" y="26" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Sort:</text>
+    <rect x="580" y="10" width="100" height="24" rx="6" fill="#0f172a"/>
+    <text x="600" y="26" font-family="ui-monospace, monospace" font-size="10" fill="#f0f9ff">Profit ↓</text>
+  </g>
+
+  <!-- Table header -->
+  <g transform="translate(230, 155)">
+    <rect width="740" height="32" rx="4" fill="#1e293b"/>
+    <text x="16" y="20" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">ROUTE</text>
+    <text x="200" y="20" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">CHAIN</text>
+    <text x="300" y="20" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">DEXES</text>
+    <text x="430" y="20" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">GAS</text>
+    <text x="510" y="20" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">PROFIT</text>
+    <text x="610" y="20" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">CONFIDENCE</text>
+    <text x="700" y="20" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">EXPIRES</text>
+  </g>
+
+  <!-- Opportunity rows -->
+  <g transform="translate(230, 193)">
+    <rect width="740" height="52" rx="4" fill="#0f172a"/>
+    <rect width="740" height="52" rx="4" stroke="#06b6d4" stroke-width="0.5" stroke-opacity="0.3"/>
+    <rect x="0" y="0" width="3" height="52" rx="1.5" fill="#10b981"/>
+    <text x="16" y="20" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">USDC → WETH → DAI</text>
+    <text x="16" y="36" font-family="ui-monospace, monospace" font-size="9" fill="#475569">3 hops · $2.4M liquidity</text>
+    <rect x="200" y="14" width="64" height="20" rx="4" fill="#6366f1" opacity="0.2"/>
+    <text x="214" y="28" font-family="ui-monospace, monospace" font-size="9" fill="#818cf8">Arbitrum</text>
+    <text x="300" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#94a3b8">Uniswap v3</text>
+    <text x="430" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#fbbf24">142 gwei</text>
+    <text x="510" y="28" font-family="ui-monospace, monospace" font-size="11" font-weight="600" fill="#10b981">+$842</text>
+    <rect x="605" y="16" width="48" height="16" rx="8" fill="#10b981" opacity="0.2"/>
+    <text x="617" y="27" font-family="ui-monospace, monospace" font-size="9" fill="#10b981">94%</text>
+    <text x="700" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">~12s</text>
+    <rect x="668" y="14" width="64" height="24" rx="4" fill="#06b6d4" opacity="0.15"/>
+    <text x="682" y="29" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4">Execute</text>
+  </g>
+
+  <g transform="translate(230, 251)">
+    <rect width="740" height="52" rx="4" fill="#0f172a"/>
+    <rect x="0" y="0" width="3" height="52" rx="1.5" fill="#10b981"/>
+    <text x="16" y="20" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">WBTC → ETH → USDT</text>
+    <text x="16" y="36" font-family="ui-monospace, monospace" font-size="9" fill="#475569">3 hops · $8.1M liquidity</text>
+    <rect x="200" y="14" width="64" height="20" rx="4" fill="#3b82f6" opacity="0.2"/>
+    <text x="222" y="28" font-family="ui-monospace, monospace" font-size="9" fill="#60a5fa">Ethereum</text>
+    <text x="300" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#94a3b8">Curve + Uniswap</text>
+    <text x="430" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#fbbf24">156 gwei</text>
+    <text x="510" y="28" font-family="ui-monospace, monospace" font-size="11" font-weight="600" fill="#10b981">+$1,247</text>
+    <rect x="605" y="16" width="48" height="16" rx="8" fill="#10b981" opacity="0.2"/>
+    <text x="617" y="27" font-family="ui-monospace, monospace" font-size="9" fill="#10b981">91%</text>
+    <text x="700" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">~8s</text>
+    <rect x="668" y="14" width="64" height="24" rx="4" fill="#06b6d4" opacity="0.15"/>
+    <text x="682" y="29" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4">Execute</text>
+  </g>
+
+  <g transform="translate(230, 309)">
+    <rect width="740" height="52" rx="4" fill="#0f172a"/>
+    <rect x="0" y="0" width="3" height="52" rx="1.5" fill="#10b981"/>
+    <text x="16" y="20" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">DAI → USDC → USDT</text>
+    <text x="16" y="36" font-family="ui-monospace, monospace" font-size="9" fill="#475569">2 hops · $15.2M liquidity</text>
+    <rect x="200" y="14" width="64" height="20" rx="4" fill="#3b82f6" opacity="0.2"/>
+    <text x="222" y="28" font-family="ui-monospace, monospace" font-size="9" fill="#60a5fa">Ethereum</text>
+    <text x="300" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#94a3b8">Uniswap v2</text>
+    <text x="430" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#fbbf24">128 gwei</text>
+    <text x="510" y="28" font-family="ui-monospace, monospace" font-size="11" font-weight="600" fill="#10b981">+$231</text>
+    <rect x="605" y="16" width="48" height="16" rx="8" fill="#10b981" opacity="0.2"/>
+    <text x="617" y="27" font-family="ui-monospace, monospace" font-size="9" fill="#10b981">87%</text>
+    <text x="700" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">~20s</text>
+    <rect x="668" y="14" width="64" height="24" rx="4" fill="#06b6d4" opacity="0.15"/>
+    <text x="682" y="29" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4">Execute</text>
+  </g>
+
+  <g transform="translate(230, 367)">
+    <rect width="740" height="52" rx="4" fill="#0f172a"/>
+    <rect x="0" y="0" width="3" height="52" rx="1.5" fill="#10b981"/>
+    <text x="16" y="20" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">ETH → LINK → AAVE</text>
+    <text x="16" y="36" font-family="ui-monospace, monospace" font-size="9" fill="#475569">3 hops · $1.8M liquidity</text>
+    <rect x="200" y="14" width="50" height="20" rx="4" fill="#3b82f6" opacity="0.2"/>
+    <text x="208" y="28" font-family="ui-monospace, monospace" font-size="9" fill="#60a5fa">Base</text>
+    <text x="300" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#94a3b8">Uniswap v3</text>
+    <text x="430" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#fbbf24">98 gwei</text>
+    <text x="510" y="28" font-family="ui-monospace, monospace" font-size="11" font-weight="600" fill="#10b981">+$158</text>
+    <rect x="605" y="16" width="48" height="16" rx="8" fill="#10b981" opacity="0.2"/>
+    <text x="617" y="27" font-family="ui-monospace, monospace" font-size="9" fill="#10b981">82%</text>
+    <text x="700" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">~35s</text>
+    <rect x="668" y="14" width="64" height="24" rx="4" fill="#06b6d4" opacity="0.15"/>
+    <text x="682" y="29" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4">Execute</text>
+  </g>
+
+  <g transform="translate(230, 425)">
+    <rect width="740" height="52" rx="4" fill="#0f172a"/>
+    <rect x="0" y="0" width="3" height="52" rx="1.5" fill="#f59e0b"/>
+    <text x="16" y="20" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">MKR → ETH → DAI</text>
+    <text x="16" y="36" font-family="ui-monospace, monospace" font-size="9" fill="#475569">3 hops · $4.2M liquidity</text>
+    <rect x="200" y="14" width="72" height="20" rx="4" fill="#6366f1" opacity="0.2"/>
+    <text x="198" y="28" font-family="ui-monospace, monospace" font-size="9" fill="#818cf8">Arbitrum</text>
+    <text x="300" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#94a3b8">SushiSwap</text>
+    <text x="430" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#fbbf24">178 gwei</text>
+    <text x="510" y="28" font-family="ui-monospace, monospace" font-size="11" font-weight="600" fill="#f59e0b">+$47</text>
+    <rect x="605" y="16" width="48" height="16" rx="8" fill="#f59e0b" opacity="0.2"/>
+    <text x="617" y="27" font-family="ui-monospace, monospace" font-size="9" fill="#f59e0b">61%</text>
+    <text x="700" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">~5s</text>
+    <rect x="668" y="14" width="64" height="24" rx="4" fill="#06b6d4" opacity="0.15"/>
+    <text x="682" y="29" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4">Execute</text>
+  </g>
+
+  <!-- Bottom stats bar -->
+  <g transform="translate(230, 495)">
+    <rect width="740" height="60" rx="8" fill="#1e293b"/>
+    <text x="20" y="24" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Showing 5 of 1,847 opportunities</text>
+    <text x="20" y="42" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Avg profit: $312 · Avg gas: 142 gwei · Avg confidence: 83%</text>
+
+    <!-- Pagination -->
+    <rect x="620" y="14" width="28" height="28" rx="4" fill="#0f172a"/>
+    <text x="628" y="33" font-family="ui-monospace, monospace" font-size="11" fill="#64748b">‹</text>
+    <rect x="656" y="14" width="28" height="28" rx="4" fill="#06b6d4" opacity="0.2"/>
+    <text x="664" y="33" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">1</text>
+    <rect x="692" y="14" width="28" height="28" rx="4" fill="#0f172a"/>
+    <text x="700" y="33" font-family="ui-monospace, monospace" font-size="11" fill="#64748b">2</text>
+  </g>
+
+  <!-- Right panel: opportunity details -->
+  <g transform="translate(990, 155)">
+    <rect width="190" height="400" rx="8" fill="#1e293b"/>
+    <text x="16" y="28" font-family="ui-monospace, monospace" font-size="11" font-weight="500" fill="#f0f9ff">Route Details</text>
+    <text x="16" y="48" font-family="ui-monospace, monospace" font-size="10" fill="#06b6d4">USDC → WETH → DAI</text>
+
+    <!-- Path visualization -->
+    <g transform="translate(16, 65)">
+      <rect width="158" height="36" rx="4" fill="#0f172a"/>
+      <text x="12" y="16" font-family="ui-monospace, monospace" font-size="9" fill="#64748b">Step 1</text>
+      <text x="12" y="30" font-family="ui-monospace, monospace" font-size="10" fill="#f0f9ff">USDC → WETH</text>
+      <text x="100" y="30" font-family="ui-monospace, monospace" font-size="9" fill="#10b981">+$620</text>
+    </g>
+    <text x="90" y="107" font-family="ui-monospace, monospace" font-size="9" fill="#475569">↓</text>
+    <g transform="translate(16, 113)">
+      <rect width="158" height="36" rx="4" fill="#0f172a"/>
+      <text x="12" y="16" font-family="ui-monospace, monospace" font-size="9" fill="#64748b">Step 2</text>
+      <text x="12" y="30" font-family="ui-monospace, monospace" font-size="10" fill="#f0f9ff">WETH → DAI</text>
+      <text x="100" y="30" font-family="ui-monospace, monospace" font-size="9" fill="#10b981">+$222</text>
+    </g>
+
+    <!-- Metrics -->
+    <text x="16" y="175" font-family="ui-monospace, monospace" font-size="9" fill="#64748b" letter-spacing="1">SIMULATION METRICS</text>
+
+    <g transform="translate(16, 190)">
+      <text x="0" y="14" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Gross Profit</text>
+      <text x="140" y="14" font-family="ui-monospace, monospace" font-size="10" fill="#10b981">$842</text>
+    </g>
+    <g transform="translate(16, 212)">
+      <text x="0" y="14" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Gas Cost</text>
+      <text x="140" y="14" font-family="ui-monospace, monospace" font-size="10" fill="#fbbf24">-$38</text>
+    </g>
+    <g transform="translate(16, 234)">
+      <text x="0" y="14" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Flash Loan Fee</text>
+      <text x="140" y="14" font-family="ui-monospace, monospace" font-size="10" fill="#fbbf24">-$9</text>
+    </g>
+    <line x1="16" y1="255" x2="174" y2="255" stroke="#1e293b" stroke-width="1"/>
+    <g transform="translate(16, 265)">
+      <text x="0" y="14" font-family="ui-monospace, monospace" font-size="10" fill="#f0f9ff" font-weight="500">Net P&L</text>
+      <text x="140" y="14" font-family="ui-monospace, monospace" font-size="10" font-weight="600" fill="#10b981">+$795</text>
+    </g>
+
+    <!-- Action buttons -->
+    <rect x="16" y="310" width="158" height="32" rx="6" fill="#06b6d4"/>
+    <text x="56" y="330" font-family="ui-monospace, monospace" font-size="11" fill="#0a0f1e" font-weight="600">Execute Route</text>
+    <rect x="16" y="350" width="158" height="32" rx="6" fill="#1e293b" stroke="#1e293b"/>
+    <text x="48" y="370" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Save to Strategy</text>
+  </g>
+
+  <rect x="0" y="699" width="1200" height="1" fill="url(#cyan2)" opacity="0.2"/>
+</svg>

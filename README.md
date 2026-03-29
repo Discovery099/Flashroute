@@ -187,15 +187,13 @@ Register a new account. By default you start on the **Monitor** plan — full ac
 
 ## 📸 Screenshots
 
-> Screenshots coming soon — the platform is production-ready but UI screenshots need to be captured in a clean environment.
-
 | Page | Description |
 |------|-------------|
-| ![Dashboard](docs/images/dashboard-dark.png) | Dashboard with live KPI cards, profit trend chart, recent trades |
-| ![Opportunities](docs/images/opportunities-live.png) | Live opportunity feed with chain filter, profit sorting, expiry indicators |
-| ![Strategy Form](docs/images/strategy-form.png) | Strategy creation with DEX allowlist, gas limits, risk buffer |
-| ![Analytics](docs/images/analytics-charts.png) | Analytics with profit/volume trends, success rate, gas efficiency |
-| ![Billing](docs/images/billing-page.png) | Subscription management with plan comparison and upgrade flow |
+| ![Dashboard](docs/images/dashboard.svg#gh-dark-mode-only) | Dashboard with live KPI cards, profit trend chart, recent trades panel |
+| ![Opportunities](docs/images/opportunities.svg#gh-dark-mode-only) | Live opportunity feed with chain filter, profit sorting, route details |
+| ![Strategy Form](docs/images/strategy-form.svg#gh-dark-mode-only) | Strategy creation with DEX allowlist, gas limits, risk buffer |
+| ![Analytics](docs/images/analytics.svg#gh-dark-mode-only) | Analytics with profit/volume trends, success rate gauge, gas efficiency |
+| ![Billing](docs/images/billing.svg#gh-dark-mode-only) | Subscription management with plan comparison and upgrade flow |
 
 ---
 

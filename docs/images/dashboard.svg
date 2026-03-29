@@ -1,0 +1,244 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0f1e"/>
+      <stop offset="100%" style="stop-color:#111827"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4"/>
+      <stop offset="100%" style="stop-color:#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="emerald" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10b981"/>
+      <stop offset="100%" style="stop-color:#34d399"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f59e0b"/>
+      <stop offset="100%" style="stop-color:#fbbf24"/>
+    </linearGradient>
+    <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.3"/>
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Window chrome -->
+  <rect width="1200" height="700" rx="12" fill="url(#bg)"/>
+  <rect width="1200" height="700" rx="12" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Title bar -->
+  <rect width="1200" height="36" rx="12" fill="#0f172a"/>
+  <rect y="24" width="1200" height="12" fill="#0f172a"/>
+  <circle cx="20" cy="18" r="6" fill="#ef4444"/>
+  <circle cx="40" cy="18" r="6" fill="#f59e0b"/>
+  <circle cx="60" cy="18" r="6" fill="#22c55e"/>
+  <text x="600" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#64748b" text-anchor="middle">flashroute — dashboard</text>
+
+  <!-- Sidebar -->
+  <rect x="0" y="36" width="200" height="664" fill="#0f172a"/>
+  <rect x="197" y="36" width="1" height="664" fill="#1e293b"/>
+
+  <!-- Sidebar logo -->
+  <text x="20" y="65" font-family="ui-monospace, monospace" font-size="14" font-weight="700" fill="#f0f9ff">FlashRoute</text>
+
+  <!-- Sidebar nav items -->
+  <g transform="translate(0, 80)">
+    <rect x="0" y="0" width="197" height="36" fill="#1e293b"/>
+    <rect x="0" y="0" width="3" height="36" fill="url(#cyan)"/>
+    <circle cx="24" cy="18" r="4" fill="#06b6d4"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#06b6d4">Dashboard</text>
+  </g>
+
+  <g transform="translate(0, 116)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Opportunities</text>
+  </g>
+
+  <g transform="translate(0, 152)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Strategies</text>
+  </g>
+
+  <g transform="translate(0, 188)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Trades</text>
+  </g>
+
+  <g transform="translate(0, 224)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Analytics</text>
+  </g>
+
+  <!-- Sidebar section label -->
+  <text x="16" y="295" font-family="ui-monospace, monospace" font-size="9" fill="#475569" letter-spacing="1">SYSTEM</text>
+
+  <g transform="translate(0, 308)">
+    <rect x="0" y="0" width="197" height="36" fill="transparent"/>
+    <circle cx="24" cy="18" r="4" fill="#475569"/>
+    <text x="40" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#94a3b8">Settings</text>
+  </g>
+
+  <!-- User section at bottom -->
+  <rect y="580" width="197" height="120" fill="#0a0f1e"/>
+  <rect y="580" width="197" height="1" fill="#1e293b"/>
+  <circle cx="30" cy="610" r="14" fill="#1e293b"/>
+  <text x="30" y="614" font-family="ui-monospace, monospace" font-size="10" fill="#06b6d4" text-anchor="middle">OP</text>
+  <text x="55" y="607" font-family="ui-monospace, monospace" font-size="11" fill="#f0f9ff">Operator</text>
+  <text x="55" y="621" font-family="ui-monospace, monospace" font-size="10" fill="#475569">Monitor Plan</text>
+
+  <!-- Main content area -->
+  <text x="230" y="80" font-family="ui-monospace, monospace" font-size="18" font-weight="600" fill="#f0f9ff">Dashboard</text>
+  <text x="230" y="100" font-family="ui-monospace, monospace" font-size="11" fill="#475569">Real-time overview of your arbitrage operations</text>
+
+  <!-- Status bar -->
+  <g transform="translate(880, 60)">
+    <rect x="0" y="0" width="90" height="24" rx="12" fill="#10b981" opacity="0.15"/>
+    <circle cx="12" cy="12" r="4" fill="#10b981"/>
+    <text x="22" y="16" font-family="ui-monospace, monospace" font-size="10" fill="#10b981">● All Systems</text>
+  </g>
+  <g transform="translate(780, 60)">
+    <rect x="0" y="0" width="88" height="24" rx="12" fill="#f59e0b" opacity="0.15"/>
+    <text x="10" y="16" font-family="ui-monospace, monospace" font-size="10" fill="#f59e0b">⚡ Execution OFF</text>
+  </g>
+
+  <!-- KPI Cards row -->
+  <g transform="translate(230, 120)">
+    <!-- Card 1 -->
+    <rect width="170" height="90" rx="8" fill="#1e293b" stroke="#1e293b"/>
+    <text x="14" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">TOTAL PROFIT</text>
+    <text x="14" y="58" font-family="ui-monospace, monospace" font-size="22" font-weight="600" fill="#10b981">+$48,291</text>
+    <text x="14" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#22c55e">↑ 12.4% vs last week</text>
+
+    <!-- Card 2 -->
+    <rect x="185" width="170" height="90" rx="8" fill="#1e293b" stroke="#1e293b"/>
+    <text x="199" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">OPPORTUNITIES</text>
+    <text x="199" y="58" font-family="ui-monospace, monospace" font-size="22" font-weight="600" fill="#06b6d4">1,847</text>
+    <text x="199" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#06b6d4">↑ 89 today</text>
+
+    <!-- Card 3 -->
+    <rect x="370" width="170" height="90" rx="8" fill="#1e293b" stroke="#1e293b"/>
+    <text x="384" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">SUCCESS RATE</text>
+    <text x="384" y="58" font-family="ui-monospace, monospace" font-size="22" font-weight="600" fill="#f0f9ff">94.2%</text>
+    <text x="384" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">↓ 0.3% vs last week</text>
+
+    <!-- Card 4 -->
+    <rect x="555" width="170" height="90" rx="8" fill="#1e293b" stroke="#1e293b"/>
+    <text x="569" y="28" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">GAS EFFICIENCY</text>
+    <text x="569" y="58" font-family="ui-monospace, monospace" font-size="22" font-weight="600" fill="#fbbf24">87.3%</text>
+    <text x="569" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#fbbf24">↑ 2.1% improved</text>
+  </g>
+
+  <!-- Profit Trend Chart -->
+  <g transform="translate(230, 230)">
+    <rect width="495" height="220" rx="8" fill="#1e293b"/>
+    <text x="16" y="28" font-family="ui-monospace, monospace" font-size="12" font-weight="500" fill="#f0f9ff">Profit Trend</text>
+    <text x="16" y="44" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">7-day rolling P&L</text>
+
+    <!-- Chart area -->
+    <g transform="translate(16, 60)">
+      <!-- Y-axis labels -->
+      <text x="0" y="0" font-family="ui-monospace, monospace" font-size="9" fill="#475569">$8k</text>
+      <text x="0" y="45" font-family="ui-monospace, monospace" font-size="9" fill="#475569">$6k</text>
+      <text x="0" y="90" font-family="ui-monospace, monospace" font-size="9" fill="#475569">$4k</text>
+      <text x="0" y="135" font-family="ui-monospace, monospace" font-size="9" fill="#475569">$2k</text>
+
+      <!-- Grid lines -->
+      <line x1="35" y1="-5" x2="35" y2="145" stroke="#1e293b" stroke-width="1"/>
+      <line x1="105" y1="-5" x2="105" y2="145" stroke="#1e293b" stroke-width="1"/>
+      <line x1="175" y1="-5" x2="175" y2="145" stroke="#1e293b" stroke-width="1"/>
+      <line x1="245" y1="-5" x2="245" y2="145" stroke="#1e293b" stroke-width="1"/>
+      <line x1="315" y1="-5" x2="315" y2="145" stroke="#1e293b" stroke-width="1"/>
+      <line x1="385" y1="-5" x2="385" y2="145" stroke="#1e293b" stroke-width="1"/>
+      <line x1="455" y1="-5" x2="455" y2="145" stroke="#1e293b" stroke-width="1"/>
+
+      <!-- Area fill -->
+      <path d="M35,120 C70,100 90,110 105,80 C120,50 140,90 175,60 C210,30 230,50 245,40 C260,30 280,20 315,30 C350,40 380,10 385,15 L455,5 L455,145 L35,145 Z" fill="url(#chartGrad)"/>
+
+      <!-- Line -->
+      <path d="M35,120 C70,100 90,110 105,80 C120,50 140,90 175,60 C210,30 230,50 245,40 C260,30 280,20 315,30 C350,40 380,10 385,15 L455,5" fill="none" stroke="url(#cyan)" stroke-width="2"/>
+
+      <!-- X-axis labels -->
+      <text x="35" y="158" font-family="ui-monospace, monospace" font-size="9" fill="#475569">Mon</text>
+      <text x="105" y="158" font-family="ui-monospace, monospace" font-size="9" fill="#475569">Tue</text>
+      <text x="175" y="158" font-family="ui-monospace, monospace" font-size="9" fill="#475569">Wed</text>
+      <text x="245" y="158" font-family="ui-monospace, monospace" font-size="9" fill="#475569">Thu</text>
+      <text x="315" y="158" font-family="ui-monospace, monospace" font-size="9" fill="#475569">Fri</text>
+      <text x="385" y="158" font-family="ui-monospace, monospace" font-size="9" fill="#475569">Sat</text>
+      <text x="440" y="158" font-family="ui-monospace, monospace" font-size="9" fill="#475569">Sun</text>
+    </g>
+  </g>
+
+  <!-- Recent Trades -->
+  <g transform="translate(745, 230)">
+    <rect width="225" height="220" rx="8" fill="#1e293b"/>
+    <text x="16" y="28" font-family="ui-monospace, monospace" font-size="12" font-weight="500" fill="#f0f9ff">Recent Trades</text>
+    <text x="16" y="44" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">Last 24 hours</text>
+
+    <!-- Trade rows -->
+    <g transform="translate(16, 60)">
+      <rect width="193" height="28" rx="4" fill="#0f172a"/>
+      <text x="8" y="17" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4">USDC→DAI</text>
+      <text x="130" y="17" font-family="ui-monospace, monospace" font-size="9" fill="#10b981">+$842</text>
+      <circle cx="178" cy="14" r="4" fill="#10b981" opacity="0.2"/>
+      <text x="176" y="17" font-family="ui-monospace, monospace" font-size="7" fill="#10b981">✓</text>
+    </g>
+
+    <g transform="translate(16, 94)">
+      <rect width="193" height="28" rx="4" fill="#0f172a"/>
+      <text x="8" y="17" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4">WBTC→ETH</text>
+      <text x="130" y="17" font-family="ui-monospace, monospace" font-size="9" fill="#10b981">+$1,247</text>
+      <circle cx="178" cy="14" r="4" fill="#10b981" opacity="0.2"/>
+      <text x="176" y="17" font-family="ui-monospace, monospace" font-size="7" fill="#10b981">✓</text>
+    </g>
+
+    <g transform="translate(16, 128)">
+      <rect width="193" height="28" rx="4" fill="#0f172a"/>
+      <text x="8" y="17" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4">ETH→USDT</text>
+      <text x="130" y="17" font-family="ui-monospace, monospace" font-size="9" fill="#10b981">+$389</text>
+      <circle cx="178" cy="14" r="4" fill="#10b981" opacity="0.2"/>
+      <text x="176" y="17" font-family="ui-monospace, monospace" font-size="7" fill="#10b981">✓</text>
+    </g>
+
+    <g transform="translate(16, 162)">
+      <rect width="193" height="28" rx="4" fill="#0f172a"/>
+      <text x="8" y="17" font-family="ui-monospace, monospace" font-size="9" fill="#06b6d4">DAI→USDC</text>
+      <text x="130" y="17" font-family="ui-monospace, monospace" font-size="9" fill="#ef4444">-$12</text>
+      <circle cx="178" cy="14" r="4" fill="#ef4444" opacity="0.2"/>
+      <text x="176" y="17" font-family="ui-monospace, monospace" font-size="7" fill="#ef4444">✗</text>
+    </g>
+  </g>
+
+  <!-- Strategy performance -->
+  <g transform="translate(230, 470)">
+    <rect width="740" height="140" rx="8" fill="#1e293b"/>
+    <text x="16" y="28" font-family="ui-monospace, monospace" font-size="12" font-weight="500" fill="#f0f9ff">Active Strategies</text>
+
+    <!-- Strategy rows -->
+    <g transform="translate(16, 48)">
+      <rect width="708" height="36" rx="4" fill="#0f172a"/>
+      <rect x="0" y="0" width="3" height="36" rx="1.5" fill="#10b981"/>
+      <text x="16" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#f0f9ff">ETH Multi-hop A</text>
+      <text x="200" y="22" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">3 hops · Uniswap + Sushi</text>
+      <rect x="420" y="10" width="56" height="18" rx="9" fill="#10b981" opacity="0.2"/>
+      <text x="430" y="23" font-family="ui-monospace, monospace" font-size="9" fill="#10b981">ACTIVE</text>
+      <text x="640" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#10b981">+$24,891</text>
+    </g>
+
+    <g transform="translate(16, 90)">
+      <rect width="708" height="36" rx="4" fill="#0f172a"/>
+      <rect x="0" y="0" width="3" height="36" rx="1.5" fill="#10b981"/>
+      <text x="16" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#f0f9ff">BTC-Arb Scalper</text>
+      <text x="200" y="22" font-family="ui-monospace, monospace" font-size="10" fill="#64748b">2 hops · Curve</text>
+      <rect x="420" y="10" width="56" height="18" rx="9" fill="#10b981" opacity="0.2"/>
+      <text x="430" y="23" font-family="ui-monospace, monospace" font-size="9" fill="#10b981">ACTIVE</text>
+      <text x="640" y="22" font-family="ui-monospace, monospace" font-size="11" fill="#10b981">+$12,044</text>
+    </g>
+  </g>
+
+  <!-- Glow line at bottom -->
+  <rect x="0" y="699" width="1200" height="1" fill="url(#cyan)" opacity="0.2"/>
+</svg>
