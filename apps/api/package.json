@@ -8,7 +8,7 @@
     "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
     "test": "pnpm exec vitest run --pool forks src/modules/auth/auth.routes.test.ts src/modules/users/user.routes.test.ts src/modules/opportunities/opportunities.routes.test.ts src/modules/strategies/strategies.routes.test.ts src/modules/live/live.gateway.test.ts src/modules/live/live.ws.test.ts",
     "build": "node -e \"console.log('api build placeholder')\"",
-    "dev": "node -e \"console.log('api dev placeholder')\""
+    "dev": "node ../../node_modules/.bin/tsx src/dev.ts"
   },
   "dependencies": {
     "@fastify/websocket": "^11.2.0",
