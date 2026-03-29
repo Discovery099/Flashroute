@@ -2,15 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TradeQueueProcessor } from './trade-queue.processor';
 import { TradeApiClient } from './trade-api.client';
 
-vi.mock('./trade-api.client');
-
 const mockPublish = vi.fn();
 const mockBrpop = vi.fn();
+const mockLpush = vi.fn();
+
+vi.mock('./trade-api.client');
 
 vi.mock('ioredis', () => ({
   default: vi.fn().mockImplementation(() => ({
-    brpop: mockPublish,
+    brpop: mockBrpop,
     publish: mockPublish,
+    lpush: mockLpush,
   })),
 }));
 
@@ -31,14 +33,14 @@ describe('TradeQueueProcessor', () => {
       updateTradeStatus: vi.fn(),
     } as unknown as TradeApiClient;
     processor = new TradeQueueProcessor(
-      { brpop: mockBrpop, publish: mockPublish } as never,
+      { brpop: mockBrpop, publish: mockPublish, lpush: mockLpush } as never,
       mockApiClient,
       mockLogger
     );
   });
 
   describe('processMessage', () => {
-    it('processMessage create — calls apiClient.createTrade and redis.publish', async () => {
+    it('processes create message — calls apiClient.createTrade and redis.publish', async () => {
       const message = JSON.stringify({
         type: 'create',
         payload: { strategyId: 'strat-1', status: 'pending' },
@@ -58,7 +60,7 @@ describe('TradeQueueProcessor', () => {
       );
     });
 
-    it('processMessage update — calls apiClient.updateTradeStatus and redis.publish', async () => {
+    it('processes update message — calls apiClient.updateTradeStatus and redis.publish', async () => {
       const message = JSON.stringify({
         type: 'update',
         tradeId: 'trade-456',
@@ -77,18 +79,18 @@ describe('TradeQueueProcessor', () => {
       );
     });
 
-    it('processMessage parse error — logs warning, does not call API', async () => {
+    it('parse error — logs warning, does not call API', async () => {
       await processor['processMessage']('invalid json');
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
         { message: 'invalid json' },
-        'Failed to parse trade queue message'
+        expect.stringContaining('Failed to parse')
       );
       expect(mockApiClient.createTrade).not.toHaveBeenCalled();
       expect(mockApiClient.updateTradeStatus).not.toHaveBeenCalled();
     });
 
-    it('processMessage API error — logs error but does not rethrow', async () => {
+    it('API error on create — re-queues message via lpush', async () => {
       const message = JSON.stringify({
         type: 'create',
         payload: { strategyId: 'strat-1' },
@@ -99,8 +101,38 @@ describe('TradeQueueProcessor', () => {
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         { err: expect.any(Error), message: expect.anything() },
-        'Failed to process trade message'
+        expect.stringContaining('re-queuing')
       );
+      expect(mockLpush).toHaveBeenCalledWith('fr:trades:queue', message);
+    });
+
+    it('API error on update — re-queues message via lpush', async () => {
+      const message = JSON.stringify({
+        type: 'update',
+        tradeId: 'trade-456',
+        payload: { status: 'included' },
+      });
+      vi.mocked(mockApiClient.updateTradeStatus).mockRejectedValue(new Error('API failure'));
+
+      await processor['processMessage'](message);
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        { err: expect.any(Error), message: expect.anything() },
+        expect.stringContaining('re-queuing')
+      );
+      expect(mockLpush).toHaveBeenCalledWith('fr:trades:queue', message);
+    });
+
+    it('unknown message type — logs warning and discards', async () => {
+      const message = JSON.stringify({ type: 'unknown' });
+      await processor['processMessage'](message);
+
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        { type: 'unknown' },
+        expect.stringContaining('Unknown message type')
+      );
+      expect(mockApiClient.createTrade).not.toHaveBeenCalled();
+      expect(mockApiClient.updateTradeStatus).not.toHaveBeenCalled();
     });
   });
 
