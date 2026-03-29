@@ -17,7 +17,7 @@ export interface ExecutionDecision {
 export interface ExecutionResult {
   tradeId?: string;
   txHash?: string;
-  status: 'skipped' | 'submitted' | 'included' | 'reverted' | 'failed';
+  status: 'skipped' | 'submitted_private' | 'submitted_public' | 'included' | 'reverted' | 'failed';
   reason?: string;
   error?: string;
 }
@@ -178,7 +178,7 @@ export class ExecutionEngine {
       const trade = await this.tradeService.createTrade({
         strategyId: strategy.id,
         chainId,
-        status: 'submitted',
+        status: relay instanceof FlashbotsRelay ? 'submitted_private' : 'submitted_public',
         routePath: route.hops.map((h) => h.router).join('→'),
         flashLoanProvider: route.provider,
         flashLoanToken: route.token,
@@ -197,11 +197,12 @@ export class ExecutionEngine {
         });
         return { tradeId: trade.id, txHash: relayResult.txHash, status: 'included' };
       } else {
+        const isOnChainRevert = relayResult.reason === 'onchain_revert';
         await this.tradeService.updateTrade(trade.id, {
-          status: 'failed',
+          status: isOnChainRevert ? 'reverted' : 'failed',
           errorMessage: relayResult.error ?? relayResult.reason,
         });
-        return { tradeId: trade.id, status: 'failed', reason: relayResult.reason };
+        return { tradeId: trade.id, status: isOnChainRevert ? 'reverted' : 'failed', reason: relayResult.reason };
       }
     } catch (err) {
       this.logger.error({ err, routeId: route.id }, 'Execution error');
