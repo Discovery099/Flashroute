@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![FlashRoute — Arbitrage Intelligence Platform](./docs/images/header.svg)
+![FlashRoute — Arbitrage Intelligence Platform](https://raw.githubusercontent.com/Discovery099/Flashroute/main/docs/images/header.svg)
 
 **Real-time DeFi arbitrage intelligence and analytics for traders and funds.**
 
@@ -189,11 +189,11 @@ Register a new account. By default you start on the **Monitor** plan — full ac
 
 | Page | Description |
 |------|-------------|
-| ![Dashboard](docs/images/dashboard.svg#gh-dark-mode-only) | Dashboard with live KPI cards, profit trend chart, recent trades panel |
-| ![Opportunities](docs/images/opportunities.svg#gh-dark-mode-only) | Live opportunity feed with chain filter, profit sorting, route details |
-| ![Strategy Form](docs/images/strategy-form.svg#gh-dark-mode-only) | Strategy creation with DEX allowlist, gas limits, risk buffer |
-| ![Analytics](docs/images/analytics.svg#gh-dark-mode-only) | Analytics with profit/volume trends, success rate gauge, gas efficiency |
-| ![Billing](docs/images/billing.svg#gh-dark-mode-only) | Subscription management with plan comparison and upgrade flow |
+| ![Dashboard](https://raw.githubusercontent.com/Discovery099/Flashroute/main/docs/images/dashboard.svg) | Dashboard with live KPI cards, profit trend chart, recent trades panel |
+| ![Opportunities](https://raw.githubusercontent.com/Discovery099/Flashroute/main/docs/images/opportunities.svg) | Live opportunity feed with chain filter, profit sorting, route details |
+| ![Strategy Form](https://raw.githubusercontent.com/Discovery099/Flashroute/main/docs/images/strategy-form.svg) | Strategy creation with DEX allowlist, gas limits, risk buffer |
+| ![Analytics](https://raw.githubusercontent.com/Discovery099/Flashroute/main/docs/images/analytics.svg) | Analytics with profit/volume trends, success rate gauge, gas efficiency |
+| ![Billing](https://raw.githubusercontent.com/Discovery099/Flashroute/main/docs/images/billing.svg) | Subscription management with plan comparison and upgrade flow |
 
 ---
 
